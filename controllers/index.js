@@ -1,0 +1,26 @@
+const { Router } = require('express');
+const AuthController = require('./Auth.Controller');
+const ForumsController = require('./Forums.Controller');
+
+const router = Router();
+const api = 'api/v0';
+
+// initialize repos
+// const forumsRepository = {}; // TBD
+// initialize services(repo)
+// const forumsService = new ForumsService(forumsRepository);
+
+const authController = new AuthController();
+const forumsController = new ForumsController();
+
+router.use(`/${api}/forums`, forumsController.router);
+router.use(`/${api}/auth`, authController.router);
+
+// endpoints
+// GET api/v0/forums?...filters
+// GET api/v0/forums/{id}/participants
+// GET api/v0/forums/{id}/topics
+// GET api/v0/forums/{id}/topics/{id}/comments
+// GET api/v0/users/{id}
+
+module.exports = router;
