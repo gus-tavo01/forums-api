@@ -1,11 +1,20 @@
 const express = require('express');
+const cors = require('cors');
+const controllers = require('./controllers');
+const setupDb = require('./config/database');
+
 const port = process.env.PORT || 5000;
 const app = express();
 
-app.get('/', (req, res) => {
-  res.status(200).json({status: 'Success', description: 'Muy bien'});
-});
+// configuration
+// configureStrategy(passport);
+setupDb();
 
-app.listen(port, () => {
-  console.log(`App running on PORT: ${port}`);
-});
+// initialize middlewares
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(controllers);
+// app.use(passport.initialize());
+
+app.listen(port);
