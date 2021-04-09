@@ -22,10 +22,6 @@ const TopicSchema = new Schema({
   comments: {
     type: [
       {
-        id: {
-          type: Schema.Types.ObjectId,
-          required: true,
-        },
         from: { type: String, required: true },
         to: { type: String, required: false, default: null },
         message: { type: String, required: true },
