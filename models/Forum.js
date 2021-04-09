@@ -16,22 +16,38 @@ const ForumSchema = new Schema({
   createDate: {
     type: Date,
     required: false,
-    default: new Date(),
+    default: Date.now,
   },
   imageSrc: {
     type: String,
     required: false,
     default: null,
   },
-  // participants: {
-  //   type: String, // subDoc
-  //   required: false,
-  //   default: []
-  // },
+  participants: {
+    type: [
+      {
+        id: {
+          type: Schema.Types.ObjectId,
+          required: true,
+        },
+        username: { type: String, required: true },
+      },
+    ],
+    default: [],
+  },
+  topics: {
+    type: [
+      {
+        id: { type: Schema.Types.ObjectId, required: true },
+        name: { type: String, required: true },
+      },
+    ],
+    default: [],
+  },
   lastActivity: {
     type: Date,
     required: false,
-    default: new Date(),
+    default: Date.now,
   },
 });
 
