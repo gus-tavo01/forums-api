@@ -28,5 +28,5 @@ jobs:
 
       - name: Deploy to Heroku
         run: |
-          git fetch --all --unshallow &&
+          git fetch --all --unshallow
           git push heroku master -f
