@@ -9,7 +9,7 @@ class UsersController {
   }
 
   get = async (req, res) => {
-    res.status(200).json({ result: 'Okay' });
+    res.status(200).json({ result: 'Okay ' + process.env.FUCK_HOLE });
   };
 }
 
