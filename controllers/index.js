@@ -6,11 +6,6 @@ const UsersController = require('./Users.Controller');
 const router = Router();
 const api = 'api/v0';
 
-// initialize repos
-// const forumsRepository = {}; // TBD
-// initialize services(repo)
-// const forumsService = new ForumsService(forumsRepository);
-
 const authController = new AuthController();
 const forumsController = new ForumsController();
 const usersController = new UsersController();
