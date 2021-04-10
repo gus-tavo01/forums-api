@@ -4,6 +4,8 @@
 
 Restful API for forums management
 
+- public url: https://forums-api.herokuapp.com
+
 ## Todos
 
 - define basic endpoints
