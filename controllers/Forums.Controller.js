@@ -47,8 +47,7 @@ class ForumsController {
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
-    res.status(apiResponse.statusCode);
-    return apiResponse;
+    return res.status(apiResponse.statusCode).json(apiResponse);
   };
 }
 
