@@ -1,11 +1,12 @@
-// import ForumsService
-const Forum = require('../models/Forum');
 const { Router } = require('express');
+const ApiResponse = require('../common/ApiResponse');
+const ForumsService = require('../services/Forums.Service');
 
 // api/v0/forums
 class ForumsController {
   constructor() {
     this.router = Router();
+    this.forumsService = new ForumsService();
 
     this.router.get('/', this.get);
     this.router.post('/', this.post);
@@ -16,64 +17,38 @@ class ForumsController {
   }
 
   get = async (req, res) => {
-    const defaultFilters = {
-      page: 1,
-      pageSize: 15,
-      name: '',
-      author: '',
-      size: 'medium',
-    };
-    const response = [
-      {
-        id: 2,
-        name: 'Mockie forum',
-        author: 'GALV',
-        description: 'This is a mock forum for test',
-        imageSrc: null,
-        lastActivity: new Date(), // calculate from actions done on forum/topic
-        participants: [
-          {
-            id: 'idasdads',
-            username: 'ticky01',
-          },
-          {
-            id: 'idwasdfgh',
-            username: 'yayis01',
-          },
-        ],
-        topics: [
-          {
-            id: 'idzxcvbn',
-            name: 'First fake topic',
-          },
-          {
-            id: 'idqwerty',
-            name: 'Another fake topic',
-          },
-          {
-            id: 'idasdfg',
-            name: 'Last fake topic',
-          },
-        ],
-      },
-      {
-        id: 3,
-        name: 'Other forum',
-        author: 'GALV',
-        description: 'This is other mock forum for testing',
-        imageSrc: null,
-        participants: [],
-        topics: ['Only me'],
-        lastActivity: new Date(),
-      },
-    ];
-    return res.status(200).json({ payload: response });
+    const apiResponse = new ApiResponse();
+    try {
+      const defaultFilters = {
+        page: 1,
+        pageSize: 15,
+      };
+      const filters = {
+        ...defaultFilters,
+        ...req.query,
+      };
+
+      const result = await this.forumsService.get(filters);
+      apiResponse.ok(result);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
+    }
+    return res.status(apiResponse.statusCode).json(apiResponse);
   };
 
   post = async (req, res) => {
-    const forum = req.body;
-    const result = await new Forum(forum).save();
-    return res.status(201).json(result);
+    const apiResponse = new ApiResponse();
+    try {
+      const forum = req.body;
+      // business validations before create forum
+      const result = await this.forumsService.create(forum);
+      // validate service response has succeed
+      apiResponse.created(result);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
+    }
+    res.status(apiResponse.statusCode);
+    return apiResponse;
   };
 }
 
