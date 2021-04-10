@@ -12,3 +12,5 @@ class UsersController {
     res.status(200).json({ result: 'Okay' });
   };
 }
+
+module.exports = UsersController;
