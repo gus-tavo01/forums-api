@@ -6,25 +6,39 @@ Restful API for forums management
 
 - public url: https://forums-api.herokuapp.com
 
-## Todos
+## App Layers
+
+### Controller/Endpoint
+
+- Consumes services
+- Business specific validations
+- Http status code is defined here
+
+### Service
+
+- Consumes repositories
+- Basic validations for empties and required fields
+
+### Repositories
+
+- Consumes DB
+- Create DB queries
+- No validations here
+
+## Important todos
 
 - define basic endpoints
-  - GET forums
+  - GET forums (done)
   - GET topics, GET topic
   - GET user (profile)?
-- define deep flow
-  - endpoint (business validations)
-  - service (basic validations)
-  - repository (just retrieve data from DB)
+- create pagination
 
-## Pending
+## Pendings
 
+- deploy database on server
 - configure dev environment (env variables)
-- create repository layer
-- create service layer
-- define service response
+- define service layer
 - define test strategy
-- create pipeline cicd
 - add missing schemas
   - user
   - login
