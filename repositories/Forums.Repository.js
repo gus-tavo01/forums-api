@@ -7,10 +7,21 @@ class ForumsRepository {
   };
 
   find = async (filters) => {
-    // extract filters
-    const { name, author, size } = filters;
-    // create filter object
     const filter = {};
+
+    if (filters.name) {
+      filter.name = new RegExp(`.*${filters.name}.*`);
+    }
+
+    if (filters.author) {
+      filter.author = new RegExp(`.*${filters.author}.*`);
+    }
+
+    if (filters.size) {
+      // TBD
+      // handle forum size $gt
+    }
+
     return Model.find(filter);
   };
 
