@@ -2,6 +2,7 @@
 const Forum = require('../models/Forum');
 const { Router } = require('express');
 
+// api/v0/forums
 class ForumsController {
   constructor() {
     this.router = Router();

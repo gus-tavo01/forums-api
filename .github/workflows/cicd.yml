@@ -23,15 +23,9 @@ jobs:
       - name: Run the tests
         run: npm run test
 
-      # - name: Add remote origin
-      #   run: git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
-
-      # - name: Deploy to Heroku
-      #   run: |
-      #     git push heroku master -f
       - uses: akhileshns/heroku-deploy@v3.8.8
         with:
-          heroku_email: gustavoa.loera01@gmail.com
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: forums-api
           branch: master
