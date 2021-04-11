@@ -17,9 +17,8 @@ class ForumsRepository {
       filter.author = new RegExp(`.*${filters.author}.*`);
     }
 
-    if (filters.size) {
-      // TBD
-      // handle forum size $gt
+    if (filters.usersFrom && filters.usersTo) {
+      filter.$where = `this.participants.length >= ${filters.usersFrom} && this.participants.length <= ${filters.usersTo}`;
     }
 
     return Model.find(filter);
