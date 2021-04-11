@@ -17,10 +17,10 @@ class ForumsRepository {
       filter.author = new RegExp(`.*${filters.author}.*`);
     }
 
-    if (filters.usersFrom && filters.usersTo) {
-      filter.$where = `this.participants.length >= ${filters.usersFrom} && this.participants.length <= ${filters.usersTo}`;
+    if (filters.forumSize) {
+      const { from, to } = filters.forumSize;
+      filter.$where = `this.participants.length >= ${from} && this.participants.length <= ${to}`;
     }
-
     return Model.find(filter);
   };
 
