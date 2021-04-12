@@ -10,15 +10,15 @@ const UserSchema = new Schema({
     default: Date.now,
   },
   // TBD
-  preferences: {
-    theme: {
-      type: String,
-    },
-    language: {
-      type: Schema.Types.ObjectId,
-      ref: 'Language',
-    },
-  },
+  // preferences: {
+  //   theme: {
+  //     type: String,
+  //   },
+  //   language: {
+  //     type: Schema.Types.ObjectId,
+  //     ref: 'Language',
+  //   },
+  // },
 });
 
 const User = model('User', UserSchema);
