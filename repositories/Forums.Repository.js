@@ -8,6 +8,7 @@ class ForumsRepository {
 
   find = async (filters) => {
     const filter = {};
+    const options = { page: 1 };
 
     if (filters.name) {
       filter.name = new RegExp(`.*${filters.name}.*`);
@@ -21,7 +22,16 @@ class ForumsRepository {
       const { from, to } = filters.forumSize;
       filter.$where = `this.participants.length >= ${from} && this.participants.length <= ${to}`;
     }
-    return Model.find(filter);
+
+    if (filters.page) {
+      options.page = filters.page;
+    }
+
+    if (filters.pageSize) {
+      options.limit = filters.pageSize;
+    }
+
+    return Model.paginate(filter, options);
   };
 
   // findById
