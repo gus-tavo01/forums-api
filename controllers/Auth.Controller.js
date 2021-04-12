@@ -2,12 +2,14 @@ const { Router } = require('express');
 const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const ApiResponse = require('../common/ApiResponse');
+const LoginsService = require('../services/Logins.Service');
 
 // api/v0/auth
 class AuthController {
   constructor() {
     this.router = Router();
     this.router.post('/login', this.login);
+    this.loginsService = new LoginsService();
   }
 
   login = async (req, res) => {
