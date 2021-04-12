@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const passport = require('passport');
 const ApiResponse = require('../common/ApiResponse');
 const LoginsService = require('../services/Logins.Service');
 
@@ -9,6 +10,12 @@ class AuthController {
   constructor() {
     this.router = Router();
     this.router.post('/login', this.login);
+    this.router.post('/register', this.register);
+    this.router.get(
+      '/protected',
+      passport.authenticate('jwt', { session: false }),
+      this.authRoute
+    );
     this.loginsService = new LoginsService();
   }
 
@@ -55,6 +62,32 @@ class AuthController {
   };
 
   // password reset?
+  register = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { username } = req.body;
+      const salt = await bcrypt.genSalt();
+      const passwordHash = await bcrypt.hash(req.body.password, salt);
+      const response = await this.loginsService.create({
+        username,
+        passwordHash,
+      });
+      apiResponse.created(response);
+    } catch (error) {
+      apiResponse.internalServerError(error);
+    }
+    return res.status(apiResponse.statusCode).json(apiResponse);
+  };
+
+  authRoute = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      apiResponse.ok({ message: 'You did it here' });
+    } catch (error) {
+      apiResponse.internalServerError(error);
+    }
+    return res.status(apiResponse.statusCode).json(apiResponse);
+  };
 }
 
 module.exports = AuthController;
