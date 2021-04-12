@@ -7,8 +7,9 @@ class LoginsService {
 
   findByUsername = async (username) => {
     try {
-      const result = await this.loginsRepository.findOne(username);
-      return result;
+      const result = await this.loginsRepository.findByUsername(username);
+      const serviceResponse = { result: result, fields: [] };
+      return serviceResponse;
     } catch (error) {
       // handle error on service
     }
@@ -20,9 +21,11 @@ class LoginsService {
       // username is not empty
       // password has length 6 chars
       const result = await this.loginsRepository.add(login);
-      return result;
+      return { result, fields: [] };
     } catch (error) {
       // handle service error
     }
   };
 }
+
+module.exports = LoginsService;
