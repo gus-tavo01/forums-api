@@ -10,8 +10,8 @@ const authController = new AuthController();
 const forumsController = new ForumsController();
 const usersController = new UsersController();
 
-router.use(`/${api}/forums`, forumsController.router);
 router.use(`/${api}/auth`, authController.router);
+router.use(`/${api}/forums`, forumsController.router);
 router.use(`/${api}/users`, usersController.router);
 
 // endpoints
