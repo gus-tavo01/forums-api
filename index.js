@@ -3,12 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const controllers = require('./controllers');
 const setupDb = require('./config/database');
+const configureAuth = require('./config/auth');
 
 const port = process.env.PORT || 5000;
 const app = express();
 
 // configuration
-// configureStrategy(passport);
+configureAuth();
 setupDb();
 
 // initialize middlewares
