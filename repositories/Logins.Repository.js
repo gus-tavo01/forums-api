@@ -10,6 +10,10 @@ class LoginsRepository {
     return Login.findOne({ username });
   };
 
+  findById = async (id) => {
+    return Login.findById(id);
+  };
+
   // remove
   // modify
 }
