@@ -10,10 +10,21 @@ class UsersService {
       // user validations
       const result = await this.usersRepository.add(user);
       // create serviceResponse
-      const serviceResponse = { result, fields };
+      const serviceResponse = { result, fields: [] };
       return serviceResponse;
     } catch (error) {
       // handle err
+    }
+  };
+
+  findById = async (id) => {
+    try {
+      // validate id is valid
+      const result = await this.usersRepository.findById(id);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle error
     }
   };
 }
