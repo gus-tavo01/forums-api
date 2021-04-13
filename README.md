@@ -18,6 +18,7 @@ Restful API for forums management
 
 - Consumes repositories
 - Basic validations for empties and required fields
+- Create service response
 
 ### Repositories
 
@@ -25,21 +26,39 @@ Restful API for forums management
 - Create DB queries
 - No validations here
 
-## Important todos
+## Base endpoints todos
 
 - define basic endpoints
-  - GET forums (done)
-  - GET topics, GET topic
+  - GET topic
   - GET user (profile)?
-- create pagination
 
-## Pendings
+## Testing todos
 
-- deploy database on server
-- configure dev environment (env variables)
+- Users controller
+  - post
+  - get by id
+- Forums controller
+  - get by filters
+  - post
+- Topics controller
+  - get by id
+
+## Pendings to be defined
+
 - define service layer
+  - validations
+  - service response
 - define test strategy
-- add missing schemas
+  - unit
+    - services
+    - controllers
+  - integration
+    - repositories?
+    - services
+    - controllers (E2e)
+- define missing user conf schema
   - user
-  - login
-  - preferences
+    - account preferences TBD
+    - theme
+- define email send workflow
+- add/configure passport
