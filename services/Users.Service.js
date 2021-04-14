@@ -17,7 +17,7 @@ class UsersService {
     }
   };
 
-  findById = async (id) => {
+  getById = async (id) => {
     try {
       // validate id is valid
       const result = await this.usersRepository.findById(id);
@@ -25,6 +25,16 @@ class UsersService {
       return serviceResponse;
     } catch (error) {
       // handle error
+    }
+  };
+
+  get = async (filters) => {
+    try {
+      const result = await this.usersRepository.find(filters);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle service error
     }
   };
 }
