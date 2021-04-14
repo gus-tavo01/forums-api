@@ -10,7 +10,29 @@ class UsersRepository {
     return User.findById(id);
   };
 
-  // find = async (filters) => {};
+  find = async (filters) => {
+    const filter = {};
+    const options = { page: 1 };
+
+    if (filters.username) {
+      filter.username = new RegExp(`.*${filters.username}.*`);
+    }
+
+    if (filters.email) {
+      filter.email = new RegExp(`.*${filters.email}.*`);
+    }
+
+    if (filters.page) {
+      options.page = filters.page;
+    }
+
+    if (filters.pageSize) {
+      options.limit = filters.pageSize;
+    }
+
+    return User.paginate(filter, options);
+  };
+
   // modify = async () => {}
 
   remove = async (id) => {
