@@ -14,7 +14,15 @@ class TopicsRepository {
       filter.name = new RegExp(`.*${filters.name}.*`);
     }
 
-    return Topic.find(filter);
+    if (filters.page) {
+      options.page = filters.page;
+    }
+
+    if (filters.pageSize) {
+      options.limit = filters.pageSize;
+    }
+
+    return Topic.paginate(filter, options);
   };
 
   findById = async (id) => {
