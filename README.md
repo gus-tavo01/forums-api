@@ -45,6 +45,7 @@ Restful API for forums management
 
 ## Pendings to be defined
 
+- define protected routes
 - define service layer
   - validations
   - service response
