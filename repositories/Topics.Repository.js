@@ -29,7 +29,10 @@ class TopicsRepository {
     return Topic.findById(id);
   };
 
-  // remove
+  remove = async (id) => {
+    return Topic.findByIdAndRemove(id);
+  };
+
   // modify = (id, patch) => {}
 }
 
