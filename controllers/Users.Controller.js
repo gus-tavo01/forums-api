@@ -19,6 +19,7 @@ class UsersController {
       passport.authenticate('jwt', { session: false }),
       this.post
     );
+    this.router.get('/:id', this.getById);
   }
 
   get = async (req, res) => {
@@ -77,6 +78,22 @@ class UsersController {
         return res.status(apiResponse.statusCode).json(apiResponse);
       }
       apiResponse.created(createUserResponse);
+    } catch (error) {
+      apiResponse.internalServerError(error);
+    }
+    return res.status(apiResponse.statusCode).json(apiResponse);
+  };
+
+  getById = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { id } = req.params;
+      const response = await this.usersService.findById(id);
+      if (!response) {
+        apiResponse.notFound('User is not found');
+        return res.status(apiResponse.statusCode).json(apiResponse);
+      }
+      apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
