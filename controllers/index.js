@@ -17,11 +17,4 @@ router.use(`/${api}/forums`, forumsController.router);
 router.use(`/${api}/users`, usersController.router);
 router.use(`/${api}/forums/:forumId/topics`, topicsController.router);
 
-// endpoints
-// GET api/v0/forums?...filters
-// GET api/v0/forums/{id}/participants
-// GET api/v0/forums/{id}/topics
-// GET api/v0/forums/{id}/topics/{id}/comments
-// GET api/v0/users/{id}
-
 module.exports = router;
