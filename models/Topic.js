@@ -18,7 +18,7 @@ const TopicSchema = new Schema({
   updatedDate: {
     type: Date,
     required: false,
-    default: Date.now,
+    default: null,
   },
   comments: {
     type: [
