@@ -25,8 +25,8 @@ class UsersController {
   get = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { id } = req.params;
-      const response = this.usersService.findById(id);
+      const filters = req.query;
+      const response = await this.usersService.get(filters);
       if (response.fields.length) {
         apiResponse.badRequest('Check for errors', response.fields);
         return res.status(apiResponse.statusCode).json(apiResponse);
@@ -35,7 +35,7 @@ class UsersController {
     } catch (error) {
       apiResponse.internalServerError(error);
     }
-    res.status(apiResponse.status).json(apiResponse);
+    return res.status(apiResponse.statusCode).json(apiResponse);
   };
 
   post = async (req, res) => {
