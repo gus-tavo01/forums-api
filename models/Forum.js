@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const ForumSchema = new Schema({
   name: {
@@ -51,6 +52,7 @@ const ForumSchema = new Schema({
   },
 });
 
+ForumSchema.plugin(mongoosePaginate);
 const Forum = model('Forum', ForumSchema);
 
 module.exports = Forum;

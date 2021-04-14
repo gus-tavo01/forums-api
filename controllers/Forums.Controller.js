@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
 const ForumsService = require('../services/Forums.Service');
+const ForumRanges = require('../common/constants/forumSizeRanges');
 
 // api/v0/forums
 class ForumsController {
@@ -27,6 +28,11 @@ class ForumsController {
         ...defaultFilters,
         ...req.query,
       };
+      const { forumSize } = req.query;
+
+      if (forumSize) {
+        filters.forumSize = ForumRanges[forumSize];
+      }
 
       const result = await this.forumsService.get(filters);
       apiResponse.ok(result);
