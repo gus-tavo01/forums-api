@@ -14,6 +14,10 @@ class TopicsRepository {
       filter.name = new RegExp(`.*${filters.name}.*`);
     }
 
+    if (filters.forumId) {
+      filter.forumId = filters.forumId;
+    }
+
     if (filters.page) {
       options.page = filters.page;
     }
