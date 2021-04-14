@@ -50,7 +50,8 @@ class TopicsController {
   get = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const filters = req.query;
+      const { forumId } = req.params;
+      const filters = { ...req.query, forumId };
       const response = await this.topicsService.get(filters);
       apiResponse.ok(response);
     } catch (error) {
