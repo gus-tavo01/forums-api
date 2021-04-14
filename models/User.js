@@ -9,7 +9,6 @@ const UserSchema = new Schema({
     required: false,
     default: Date.now,
   },
-  // TBD
   // preferences: {
   //   theme: {
   //     type: String,

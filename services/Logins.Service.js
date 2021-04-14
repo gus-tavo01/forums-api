@@ -21,7 +21,8 @@ class LoginsService {
       // username is not empty
       // password has length 6 chars
       const result = await this.loginsRepository.add(login);
-      return { result, fields: [] };
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
     } catch (error) {
       // handle service error
     }
