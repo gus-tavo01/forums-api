@@ -30,7 +30,8 @@ class TopicsService {
 
   get = async (filters) => {
     try {
-      const result = await this.topicsRepository.find(filters);
+      // ... filters object is not null
+      const result = await this.topicsRepository.find(filters, forumId);
       const serviceResponse = { result, fields: [] };
       return serviceResponse;
     } catch (error) {
