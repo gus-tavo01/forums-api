@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const TopicSchema = new Schema({
   name: {
@@ -38,6 +39,7 @@ const TopicSchema = new Schema({
   },
 });
 
+TopicSchema.plugin(mongoosePaginate);
 const Topic = model('Topic', TopicSchema);
 
 module.exports = Topic;
