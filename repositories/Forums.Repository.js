@@ -34,7 +34,10 @@ class ForumsRepository {
     return Model.paginate(filter, options);
   };
 
-  // findById
+  findById = async (id) => {
+    return Model.findById(id);
+  };
+
   // remove
   // modify = (id, patch) => {}
 }
