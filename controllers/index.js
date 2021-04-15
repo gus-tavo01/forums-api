@@ -3,6 +3,8 @@ const AuthController = require('./Auth.Controller');
 const ForumsController = require('./Forums.Controller');
 const UsersController = require('./Users.Controller');
 const TopicsController = require('./Topics.Controller');
+// middlewares
+const useResponse = require('../middlewares/useResponse');
 
 const router = Router();
 const api = 'api/v0';
@@ -12,6 +14,7 @@ const forumsController = new ForumsController();
 const usersController = new UsersController();
 const topicsController = new TopicsController();
 
+router.use(useResponse);
 router.use(`/${api}/auth`, authController.router);
 router.use(`/${api}/forums`, forumsController.router);
 router.use(`/${api}/users`, usersController.router);
