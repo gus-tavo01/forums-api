@@ -103,21 +103,53 @@ class TopicsController {
   delete = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { id } = req.params;
+      const { id, forumId } = req.params;
+
+      // Step get topic
       const getTopicResponse = await this.topicsService.getById(id);
-      if (!getTopicResponse.result) {
-        apiResponse.notFound('Topic not found');
-        return res.response(apiResponse);
-      }
       if (getTopicResponse.fields.length) {
         apiResponse.badRequest('Please check for errors');
         return res.response(apiResponse);
       }
+      if (!getTopicResponse.result) {
+        apiResponse.notFound('Topic not found');
+        return res.response(apiResponse);
+      }
+
+      // Step delete topic
       const deleteTopicResponse = await this.topicsService.remove(id);
+      if (deleteTopicResponse.fields.length) {
+        apiResponse.unprocessableEntity('Cannot be processed, try again later');
+        return res.response(apiResponse);
+      }
       if (!deleteTopicResponse.result) {
         apiResponse.unprocessableEntity(
           'Cannot be processed, please try again later'
         );
+        return res.response(apiResponse);
+      }
+
+      // Step get forum
+      const getForumResponse = await this.forumsService.getById(forumId);
+      if (getForumResponse.fields.length) {
+        apiResponse.unprocessableEntity('Invalid forumId');
+        return res.response(apiResponse);
+      }
+      if (!getForumResponse.result) {
+        apiResponse.unprocessableEntity('Forum is not found');
+        return res.respose(apiResponse);
+      }
+      const forum = getForumResponse.result;
+
+      // Step remove topic from forum
+      const topics = forum.topics.filter((topic) => topic.id.toString() !== id);
+      const forumUpdate = { topics };
+      const updateForumResponse = await this.forumsService.update(
+        forumId,
+        forumUpdate
+      );
+      if (updateForumResponse.fields.length || !updateForumResponse.result) {
+        apiResponse.unprocessableEntity('Topic cannot be removed from forum');
         return res.response(apiResponse);
       }
       apiResponse.ok(deleteTopicResponse);
@@ -127,6 +159,7 @@ class TopicsController {
     return res.response(apiResponse);
   };
 
+  // TODO
   // patch
 }
 
