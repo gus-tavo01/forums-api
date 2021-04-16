@@ -38,8 +38,17 @@ class ForumsRepository {
     return Model.findById(id);
   };
 
-  // remove
-  // modify = (id, patch) => {}
+  remove = async (id) => {
+    return Model.findByIdAndDelete(id);
+  };
+
+  modify = async (id, patch) => {
+    console.log(patch);
+    const res = await Model.findByIdAndUpdate(id, patch, { new: true });
+    console.log('ressie');
+    console.log(res);
+    return res;
+  };
 }
 
 module.exports = ForumsRepository;
