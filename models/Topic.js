@@ -37,6 +37,10 @@ const TopicSchema = new Schema({
     ],
     default: [],
   },
+  forumId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
 });
 
 TopicSchema.plugin(mongoosePaginate);
