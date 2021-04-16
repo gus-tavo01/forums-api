@@ -4,7 +4,7 @@
   "description": "restful api for forums management",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest unit",
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
