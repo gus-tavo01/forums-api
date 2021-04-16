@@ -37,6 +37,16 @@ class ForumsService {
       // handle service errors
     }
   };
+
+  update = async (id, patch) => {
+    try {
+      const result = await this.forumsRepository.modify(id, patch);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle errors
+    }
+  };
 }
 
 module.exports = ForumsService;
