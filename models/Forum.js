@@ -39,7 +39,8 @@ const ForumSchema = new Schema({
   topics: {
     type: [
       {
-        id: { type: Schema.Types.ObjectId, required: true },
+        _id: false,
+        id: { type: Schema.Types.ObjectId, unique: true, required: true },
         name: { type: String, required: true },
       },
     ],
