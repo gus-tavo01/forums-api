@@ -160,6 +160,7 @@ class TopicsController {
   };
 
   // TODO
+  // update name on forums collection if proceed
   // patch
 }
 
