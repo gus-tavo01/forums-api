@@ -43,11 +43,7 @@ class ForumsRepository {
   };
 
   modify = async (id, patch) => {
-    console.log(patch);
-    const res = await Model.findByIdAndUpdate(id, patch, { new: true });
-    console.log('ressie');
-    console.log(res);
-    return res;
+    return Model.findByIdAndUpdate(id, patch, { new: true });
   };
 }
 
