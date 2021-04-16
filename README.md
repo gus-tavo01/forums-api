@@ -6,6 +6,12 @@ Restful API for forums management
 
 - public url: https://forums-api.herokuapp.com
 
+## Getting started
+
+- Install the project dependencies `npm install`
+- Run the application locally `npm run dev`
+- Run the tests `npm run test`
+
 ## App Layers
 
 ### Controller/Endpoint
@@ -26,11 +32,33 @@ Restful API for forums management
 - Create DB queries
 - No validations here
 
+## App testing
+
+### Unit
+
+- Controllers
+  - Mocked service calls
+- Services
+  - Mocked repo calls
+
+### Integration E2e
+
+- Repository layer
+  - CRUD operations
+  - No mocked data
+
 ## Base endpoints todos
 
-- define basic endpoints
-  - GET topic
-  - GET user (profile)?
+- user create account (register)
+
+## Todo doubts
+
+- use response middleware
+  - users endpoint
+  - forums endpoint
+  - auth endpoint
+- POST reset password
+  - Auth controller
 
 ## Testing todos
 
@@ -42,23 +70,19 @@ Restful API for forums management
   - post
 - Topics controller
   - get by id
+  - post
+  - GET
+  - DELETE
 
 ## Pendings to be defined
 
+- define what routes will be protected
 - define service layer
   - validations
   - service response
-- define test strategy
-  - unit
-    - services
-    - controllers
-  - integration
-    - repositories?
-    - services
-    - controllers (E2e)
-- define missing user conf schema
-  - user
-    - account preferences TBD
-    - theme
+  - map service response on apiResponse
+- define user conf schema
+  - account preferences
+    - language
+  - theme
 - define email send workflow
-- add/configure passport

@@ -34,9 +34,17 @@ class ForumsRepository {
     return Model.paginate(filter, options);
   };
 
-  // findById
-  // remove
-  // modify = (id, patch) => {}
+  findById = async (id) => {
+    return Model.findById(id);
+  };
+
+  remove = async (id) => {
+    return Model.findByIdAndDelete(id);
+  };
+
+  modify = async (id, patch) => {
+    return Model.findByIdAndUpdate(id, patch, { new: true });
+  };
 }
 
 module.exports = ForumsRepository;

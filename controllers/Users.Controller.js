@@ -19,13 +19,14 @@ class UsersController {
       passport.authenticate('jwt', { session: false }),
       this.post
     );
+    this.router.get('/:id', this.getById);
   }
 
   get = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { id } = req.params;
-      const response = this.usersService.findById(id);
+      const filters = req.query;
+      const response = await this.usersService.get(filters);
       if (response.fields.length) {
         apiResponse.badRequest('Check for errors', response.fields);
         return res.status(apiResponse.statusCode).json(apiResponse);
@@ -34,7 +35,7 @@ class UsersController {
     } catch (error) {
       apiResponse.internalServerError(error);
     }
-    res.status(apiResponse.status).json(apiResponse);
+    return res.status(apiResponse.statusCode).json(apiResponse);
   };
 
   post = async (req, res) => {
@@ -77,6 +78,22 @@ class UsersController {
         return res.status(apiResponse.statusCode).json(apiResponse);
       }
       apiResponse.created(createUserResponse);
+    } catch (error) {
+      apiResponse.internalServerError(error);
+    }
+    return res.status(apiResponse.statusCode).json(apiResponse);
+  };
+
+  getById = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { id } = req.params;
+      const response = await this.usersService.findById(id);
+      if (!response) {
+        apiResponse.notFound('User is not found');
+        return res.status(apiResponse.statusCode).json(apiResponse);
+      }
+      apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error);
     }

@@ -27,6 +27,26 @@ class ForumsService {
       // service error
     }
   };
+
+  getById = async (id) => {
+    try {
+      const result = await this.forumsRepository.findById(id);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle service errors
+    }
+  };
+
+  update = async (id, patch) => {
+    try {
+      const result = await this.forumsRepository.modify(id, patch);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle errors
+    }
+  };
 }
 
 module.exports = ForumsService;

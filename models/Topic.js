@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const TopicSchema = new Schema({
   name: {
@@ -17,7 +18,7 @@ const TopicSchema = new Schema({
   updatedDate: {
     type: Date,
     required: false,
-    default: Date.now,
+    default: null,
   },
   comments: {
     type: [
@@ -36,8 +37,13 @@ const TopicSchema = new Schema({
     ],
     default: [],
   },
+  forumId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
 });
 
+TopicSchema.plugin(mongoosePaginate);
 const Topic = model('Topic', TopicSchema);
 
 module.exports = Topic;
