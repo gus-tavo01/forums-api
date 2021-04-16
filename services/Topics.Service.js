@@ -39,7 +39,15 @@ class TopicsService {
     }
   };
 
-  // update = async (patch) => { try{}catch(error){} };
+  update = async (id, patch) => {
+    try {
+      const result = await this.topicsRepository.modify(id, patch);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle errors
+    }
+  };
 
   remove = async (id) => {
     try {

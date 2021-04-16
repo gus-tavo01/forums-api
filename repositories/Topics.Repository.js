@@ -37,7 +37,9 @@ class TopicsRepository {
     return Topic.findByIdAndRemove(id);
   };
 
-  // modify = (id, patch) => {}
+  modify = (id, patch) => {
+    return Topic.findByIdAndUpdate(id, patch);
+  };
 }
 
 module.exports = TopicsRepository;
