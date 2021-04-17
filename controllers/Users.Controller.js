@@ -14,11 +14,6 @@ class UsersController {
 
     // register endpoint routes
     this.router.get('/', this.get);
-    this.router.post(
-      '/',
-      passport.authenticate('jwt', { session: false }),
-      this.post
-    );
     this.router.get('/:id', this.getById);
   }
 
