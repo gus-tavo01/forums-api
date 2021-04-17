@@ -14,8 +14,11 @@ class LoginsRepository {
     return Login.findById(id);
   };
 
+  modify = async (id, patch) => {
+    return Login.findByIdAndUpdate(id, patch);
+  };
+
   // remove
-  // modify
 }
 
 module.exports = LoginsRepository;
