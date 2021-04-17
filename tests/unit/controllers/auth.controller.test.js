@@ -108,8 +108,39 @@ describe('Auth controller register', () => {
     );
   });
 
+  test('When username already exists, expect a 409 http response', async () => {
+    // Arrange
+    const username = 'rickyticky';
+    const req = getMockReq({
+      body: {
+        username,
+        email: 'tiktok@gmail.com',
+        dateOfBirth: Date.now(),
+      },
+    });
+    const serviceResponse = { fields: [] };
+    const mockLoginUser = {
+      ...serviceResponse,
+      result: {
+        username,
+        email: 'rick.f@gmail.com',
+      },
+    };
+    LoginsService.prototype.findByUsername = jest.fn(async () => mockLoginUser);
+
+    // Act
+    await authController.register(req, res);
+
+    // Assert
+    expect(res.response).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 409,
+        payload: null,
+      })
+    );
+  });
+
   // for each param on body, do a test
-  // 'When username is in use'
 });
 
 // describe('Auth controller resetPassword');
