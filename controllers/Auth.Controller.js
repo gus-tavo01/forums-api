@@ -70,15 +70,16 @@ class AuthController {
     try {
       const { username, email, dateOfBirth, password } = req.body;
 
+      // TODO
+      // validate request body here
+      // generate fields array
+
       // Step find username if already exist
       const getUserResponse = await this.loginsService.findByUsername(username);
       if (getUserResponse.result) {
         apiResponse.conflict('This username already exists');
         return res.response(apiResponse);
       }
-
-      // TODO
-      // validate request body here
 
       // Step generate hashed password
       const salt = await bcrypt.genSalt();
