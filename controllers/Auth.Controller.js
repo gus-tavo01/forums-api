@@ -32,12 +32,12 @@ class AuthController {
           'Invalid username field',
           serviceResponse.fields
         );
-        return res.status(apiResponse.statusCode).json(apiResponse);
+        return res.response(apiResponse);
       }
 
       if (!serviceResponse.result) {
         apiResponse.unauthorized('Invalid credentials');
-        return res.status(apiResponse.statusCode).json(apiResponse);
+        return res.response(apiResponse);
       }
       const account = serviceResponse.result;
       const passwordMatch = await bcrypt.compare(
@@ -46,7 +46,7 @@ class AuthController {
       );
       if (!passwordMatch) {
         apiResponse.unauthorized('Invalid credentials');
-        return res.status(apiResponse.statusCode).json(apiResponse);
+        return res.response(apiResponse);
       }
 
       const secret = process.env.JWT_SECRET;
@@ -62,7 +62,7 @@ class AuthController {
       apiResponse.internalServerError(error.message);
       console.log(error);
     }
-    return res.status(apiResponse.statusCode).json(apiResponse);
+    return res.response(apiResponse);
   };
 
   register = async (req, res) => {
