@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const passport = require('passport');
+const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
 const LoginsService = require('../services/Logins.Service');
 const UsersService = require('../services/Users.Service');
@@ -15,11 +15,7 @@ class AuthController {
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
-    this.router.post(
-      '/users/:userId/password',
-      passport.authenticate('jwt', { session: false }),
-      this.resetPassword
-    );
+    this.router.post('/users/:userId/password', useJwtAuth, this.resetPassword);
   }
 
   login = async (req, res) => {
@@ -55,7 +51,8 @@ class AuthController {
         iat: Date.now(),
         sub: account.id,
       };
-      const token = jsonwebtoken.sign(payload, secret, { expiresIn });
+      const options = { expiresIn };
+      const token = jsonwebtoken.sign(payload, secret, options);
       const result = { token, expiresIn };
       apiResponse.ok(result);
     } catch (error) {
@@ -125,6 +122,8 @@ class AuthController {
   resetPassword = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
+      // logged in user
+      const { user } = req;
       const { userId } = req.params;
       const { password } = req.body;
 
@@ -143,36 +142,22 @@ class AuthController {
       }
       const { username } = getUserResponse.result;
 
-      // Step get login account
-      const getUsernameResponse = await this.loginsService.findByUsername(
-        username
-      );
-      if (getUsernameResponse.fields.length) {
-        apiResponse.unprocessableEntity(
-          'Cannot reset the password, try again later'
+      // Step validate it is a self pwd reset
+      if (user.username !== username) {
+        apiResponse.forbidden(
+          'Current user does not have permissions to perform this action'
         );
         return res.response(apiResponse);
       }
-      if (!getUsernameResponse.result) {
-        apiResponse.unprocessableEntity(
-          'Cannot reset the password, try again later'
-        );
-        return res.response(apiResponse);
-      }
-      const loginId = getUsernameResponse.result.id;
 
       // Step generate new pwd
       const salt = await bcrypt.genSalt();
       const passwordHash = await bcrypt.hash(password, salt);
 
-      // TODO:
-      // Step validate it is a self pwd reset
-      // auth requester user === params.userId
-
       // Step update account password
       const updatePwd = { passwordHash };
       const updatePwdResponse = await this.loginsService.update(
-        loginId,
+        user.id,
         updatePwd
       );
       if (updatePwdResponse.fields.length) {
