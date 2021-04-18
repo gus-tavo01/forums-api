@@ -57,7 +57,6 @@ class AuthController {
       apiResponse.ok(result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
-      console.log(error);
     }
     return res.response(apiResponse);
   };
