@@ -58,12 +58,6 @@ Restful API for forums management
 
 ## Todo doubts
 
-- forums controller
-  - POST
-    - assign author from auth user
-- use response middleware
-  - users endpoint
-  - forums endpoint
 - auth
   - fix token expiration validation
 
@@ -76,10 +70,6 @@ Restful API for forums management
   - get by filters
   - post
 - Topics controller
-  - get by id
-  - post
-  - GET
-  - DELETE
 
 ## Pendings to be defined
 
@@ -88,6 +78,11 @@ Restful API for forums management
   - schema validator?
 - payload signature
 - what routes would be public
+  - get forums by filters
+  - get topic by id
+  - get topics
+  - get comments
+  - get user profile
 - service layer
   - validations
   - service response
@@ -99,6 +94,10 @@ Restful API for forums management
 
 ## Incoming Features
 
+### Load forum image
+
+- use cloudinary
+
 ### Forgot password
 
 - client -> api POST call { username, email }
@@ -107,3 +106,5 @@ Restful API for forums management
 - client -> logs in { username, provisionalPwd }
 
 ### Delete my account
+
+- delete forums/topics/comments?

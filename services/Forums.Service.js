@@ -10,9 +10,11 @@ class ForumsService {
       const result = await this.forumsRepository.add(forum);
       // map result?
       // create service response
-      return result;
+      const serviceResponse = { payload: result, fields: [] };
+      return serviceResponse;
     } catch (error) {
       // error during creation
+      console.log(error);
     }
   };
 
@@ -42,6 +44,16 @@ class ForumsService {
     try {
       const result = await this.forumsRepository.modify(id, patch);
       const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle errors
+    }
+  };
+
+  delete = async (id) => {
+    try {
+      const payload = await this.forumsRepository.remove(id);
+      const serviceResponse = { payload, fields: [] };
       return serviceResponse;
     } catch (error) {
       // handle errors

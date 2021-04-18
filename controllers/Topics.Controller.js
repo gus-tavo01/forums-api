@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
+const useJwtAuth = require('../middlewares/useJwtAuth');
 const TopicsService = require('../services/Topics.Service');
 const ForumsService = require('../services/Forums.Service');
 
@@ -10,9 +11,9 @@ class TopicsController {
     this.forumsService = new ForumsService();
 
     this.router.get('/', this.get);
-    this.router.post('/', this.post);
+    this.router.post('/', useJwtAuth, this.post);
     this.router.get('/:id', this.getById);
-    this.router.delete('/:id', this.delete);
+    this.router.delete('/:id', useJwtAuth, this.delete);
   }
 
   getById = async (req, res) => {
@@ -36,7 +37,7 @@ class TopicsController {
     const apiResponse = new ApiResponse();
     try {
       const { forumId } = req.params;
-      const { body } = req;
+      const { body, user } = req;
       // Step get forum
       const getForumResponse = await this.forumsService.getById(forumId);
       if (getForumResponse.fields.length) {
@@ -48,6 +49,12 @@ class TopicsController {
         return res.response(apiResponse);
       }
       const forum = getForumResponse.result;
+
+      // Step validate user can delete topics
+      if (forum.author !== user.username) {
+        apiResponse.forbidden('Only forum author are able to proceed');
+        return res.response(apiResponse);
+      }
 
       // Step create topic
       const newTopic = { ...body, forumId: forum.id };
@@ -68,7 +75,7 @@ class TopicsController {
       // Step add topic in forum
       const createdTopic = createTopicResponse.result;
       const forumTopic = {
-        id: createdTopic.id,
+        topicId: createdTopic.id,
         name: createdTopic.name,
       };
       const forumUpdate = { topics: [...forum.topics, forumTopic] };
@@ -83,6 +90,7 @@ class TopicsController {
       apiResponse.ok(createTopicResponse);
     } catch (error) {
       apiResponse.internalServerError(error.message);
+      console.log(error);
     }
     return res.response(apiResponse);
   };
@@ -103,6 +111,7 @@ class TopicsController {
   delete = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
+      const { user } = req;
       const { id, forumId } = req.params;
 
       // Step get topic
@@ -113,6 +122,24 @@ class TopicsController {
       }
       if (!getTopicResponse.result) {
         apiResponse.notFound('Topic not found');
+        return res.response(apiResponse);
+      }
+
+      // Step get forum
+      const getForumResponse = await this.forumsService.getById(forumId);
+      if (getForumResponse.fields.length) {
+        apiResponse.unprocessableEntity('Invalid forumId');
+        return res.response(apiResponse);
+      }
+      if (!getForumResponse.result) {
+        apiResponse.unprocessableEntity('Forum is not found');
+        return res.response(apiResponse);
+      }
+      const forum = getForumResponse.result;
+
+      // Step validate user can delete topics
+      if (forum.author !== user.username) {
+        apiResponse.forbidden('Only forum authors can delete topics');
         return res.response(apiResponse);
       }
 
@@ -129,20 +156,10 @@ class TopicsController {
         return res.response(apiResponse);
       }
 
-      // Step get forum
-      const getForumResponse = await this.forumsService.getById(forumId);
-      if (getForumResponse.fields.length) {
-        apiResponse.unprocessableEntity('Invalid forumId');
-        return res.response(apiResponse);
-      }
-      if (!getForumResponse.result) {
-        apiResponse.unprocessableEntity('Forum is not found');
-        return res.respose(apiResponse);
-      }
-      const forum = getForumResponse.result;
-
       // Step remove topic from forum
-      const topics = forum.topics.filter((topic) => topic.id.toString() !== id);
+      const topics = forum.topics.filter(
+        (topic) => topic.topicId.toString() !== id
+      );
       const forumUpdate = { topics };
       const updateForumResponse = await this.forumsService.update(
         forumId,
