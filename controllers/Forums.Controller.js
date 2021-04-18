@@ -40,7 +40,7 @@ class ForumsController {
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
-    return res.status(apiResponse.statusCode).json(apiResponse);
+    return res.response(apiResponse);
   };
 
   post = async (req, res) => {
