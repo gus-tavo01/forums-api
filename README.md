@@ -47,18 +47,25 @@ Restful API for forums management
   - CRUD operations
   - No mocked data
 
-## Base endpoints todos
+## Core endpoints
 
-- user create account (register)
+- Forums
+  - Get forums by filters
+- Topics
+  - GET by id
+- Users
+  - GET by id
 
 ## Todo doubts
 
+- forums controller
+  - POST
+    - assign author from auth user
 - use response middleware
   - users endpoint
   - forums endpoint
-  - auth endpoint
-- POST reset password
-  - Auth controller
+- auth
+  - fix token expiration validation
 
 ## Testing todos
 
@@ -76,13 +83,27 @@ Restful API for forums management
 
 ## Pendings to be defined
 
-- define what routes will be protected
-- define service layer
+- validator for endpoints
+  - POST/PATCH
+  - schema validator?
+- payload signature
+- what routes would be public
+- service layer
   - validations
   - service response
   - map service response on apiResponse
-- define user conf schema
+- user conf schema
   - account preferences
     - language
   - theme
-- define email send workflow
+
+## Incoming Features
+
+### Forgot password
+
+- client -> api POST call { username, email }
+- server -> verify if username and email match with an existing account
+- server -> send email with { username, provisionalPwd }
+- client -> logs in { username, provisionalPwd }
+
+### Delete my account
