@@ -143,4 +143,43 @@ describe('Auth controller register', () => {
   // for each param on body, do a test
 });
 
-// describe('Auth controller resetPassword');
+describe('Auth controller resetPassword', () => {
+  const authController = new AuthController();
+
+  test('When password is provided, expect to be successful', async () => {
+    // Arrange
+    const username = 'r.joemon001';
+    const mockUser = { username };
+    const req = getMockReq({
+      body: { password: '5up3r53cur3' },
+      user: mockUser,
+    });
+
+    // mock calls
+    const serviceResponse = { fields: [] };
+    const mockGetUser = {
+      ...serviceResponse,
+      result: { username, id: '1245543355aasd' },
+    };
+    UsersService.prototype.getById = jest.fn(async () => mockGetUser);
+    const mockUpdateUser = {
+      ...serviceResponse,
+      result: {
+        username,
+      },
+    };
+    LoginsService.prototype.update = jest.fn(async () => mockUpdateUser);
+
+    // Act
+    await authController.resetPassword(req, res);
+
+    // Assert
+    expect(res.response).toHaveBeenCalledWith(
+      expect.objectContaining({ statusCode: 200 })
+    );
+  });
+
+  // test('When user in token is not the one in req params, expect a forbidden response');
+  // test('When source user is not found, expect a 422 response');
+  // test('When provided password is invalid, expect a 400 response');
+});
