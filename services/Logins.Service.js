@@ -27,6 +27,16 @@ class LoginsService {
       // handle service error
     }
   };
+
+  update = async (id, patch) => {
+    try {
+      const result = await this.loginsRepository.modify(id, patch);
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
+    } catch (error) {
+      // handle service error
+    }
+  };
 }
 
 module.exports = LoginsService;
