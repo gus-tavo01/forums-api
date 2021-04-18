@@ -111,7 +111,7 @@ class AuthController {
         );
         return res.response(apiResponse);
       }
-      apiResponse.created(createUserResponse);
+      apiResponse.created(createUserResponse.result);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
