@@ -26,7 +26,7 @@ class UsersController {
         apiResponse.badRequest('Check for errors', response.fields);
         return res.response(apiResponse);
       }
-      apiResponse.ok(response);
+      apiResponse.ok(response.result);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
@@ -38,11 +38,11 @@ class UsersController {
     try {
       const { id } = req.params;
       const response = await this.usersService.getById(id);
-      if (!response.payload) {
+      if (!response.result) {
         apiResponse.notFound('User is not found');
         return res.response(apiResponse);
       }
-      apiResponse.ok(response);
+      apiResponse.ok(response.result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
       console.log(error);
