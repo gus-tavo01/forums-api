@@ -25,7 +25,7 @@ class TopicsController {
         apiResponse.notFound('Topic is not found');
         return res.response(apiResponse);
       }
-      apiResponse.ok(response);
+      apiResponse.ok(response.result);
     } catch (error) {
       apiResponse.internalServerError(error);
       // console.log(error);
@@ -87,7 +87,7 @@ class TopicsController {
         apiResponse.unprocessableEntity('Cannot add topic in forum');
         return res.response(apiResponse);
       }
-      apiResponse.ok(createTopicResponse);
+      apiResponse.ok(createTopicResponse.result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
       console.log(error);
@@ -101,7 +101,7 @@ class TopicsController {
       const { forumId } = req.params;
       const filters = { ...req.query, forumId };
       const response = await this.topicsService.get(filters);
-      apiResponse.ok(response);
+      apiResponse.ok(response.result);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
@@ -169,7 +169,7 @@ class TopicsController {
         apiResponse.unprocessableEntity('Topic cannot be removed from forum');
         return res.response(apiResponse);
       }
-      apiResponse.ok(deleteTopicResponse);
+      apiResponse.ok(deleteTopicResponse.result);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
