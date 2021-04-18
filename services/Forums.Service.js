@@ -10,7 +10,7 @@ class ForumsService {
       const result = await this.forumsRepository.add(forum);
       // map result?
       // create service response
-      const serviceResponse = { payload: result, fields: [] };
+      const serviceResponse = { result, fields: [] };
       return serviceResponse;
     } catch (error) {
       // error during creation
@@ -23,7 +23,8 @@ class ForumsService {
       // get by filters
       const result = await this.forumsRepository.find(filters);
       // create service response
-      return result;
+      const serviceResponse = { result, fields: [] };
+      return serviceResponse;
     } catch (error) {
       // repository error
       // service error
