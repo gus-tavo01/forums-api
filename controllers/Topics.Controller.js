@@ -68,7 +68,7 @@ class TopicsController {
       // Step add topic in forum
       const createdTopic = createTopicResponse.result;
       const forumTopic = {
-        id: createdTopic.id,
+        topicId: createdTopic.id,
         name: createdTopic.name,
       };
       const forumUpdate = { topics: [...forum.topics, forumTopic] };
