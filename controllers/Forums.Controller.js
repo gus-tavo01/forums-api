@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
 const ForumsService = require('../services/Forums.Service');
 const ForumRanges = require('../common/constants/forumSizeRanges');
@@ -10,7 +11,7 @@ class ForumsController {
     this.forumsService = new ForumsService();
 
     this.router.get('/', this.get);
-    this.router.post('/', this.post);
+    this.router.post('/', useJwtAuth, this.post);
 
     // this.router.get('/:id', this.controller.get);
     // this.router.put('/:id', this.put);
@@ -45,15 +46,31 @@ class ForumsController {
   post = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const forum = req.body;
+      const { user } = req;
+      const { name, description } = req.body;
       // business validations before create forum
-      const result = await this.forumsService.create(forum);
-      // validate service response has succeed
-      apiResponse.created(result);
+      const forum = {
+        name,
+        description,
+        author: user.username,
+      };
+
+      const response = await this.forumsService.create(forum);
+      if (response.fields.length) {
+        apiResponse.badRequest('Check for errors');
+        return res.response(apiResponse);
+      }
+      if (!response.payload) {
+        apiResponse.unprocessableEntity(
+          'Forum cannot be created, try again later'
+        );
+        return res.repsonse(apiResponse);
+      }
+      apiResponse.created(response);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
-    return res.status(apiResponse.statusCode).json(apiResponse);
+    return res.response(apiResponse);
   };
 }
 
