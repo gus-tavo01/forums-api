@@ -11,10 +11,11 @@ function configureAuth() {
     secretOrKey: process.env.JWT_SECRET,
   };
   const jwtStrategy = new JwtStrategy(options, (jwt_payload, done) => {
+    // TODO
     // verify token has expired
-    if (Date.now() > jwt_payload.exp) {
-      return done('Token has expired', null);
-    }
+    // if (Date.now() > jwt_payload.exp) {
+    //   return done('Token has expired', null);
+    // }
 
     // token belongs to an existing user
     loginsRepository.findById(jwt_payload.sub).then((account) => {
