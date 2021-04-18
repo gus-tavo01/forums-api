@@ -35,8 +35,8 @@ class ForumsController {
         filters.forumSize = ForumRanges[forumSize];
       }
 
-      const result = await this.forumsService.get(filters);
-      apiResponse.ok(result);
+      const response = await this.forumsService.get(filters);
+      apiResponse.ok(response.result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
@@ -60,18 +60,22 @@ class ForumsController {
         apiResponse.badRequest('Check for errors');
         return res.response(apiResponse);
       }
-      if (!response.payload) {
+      if (!response.result) {
         apiResponse.unprocessableEntity(
           'Forum cannot be created, try again later'
         );
         return res.repsonse(apiResponse);
       }
-      apiResponse.created(response);
+      apiResponse.created(response.result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
     return res.response(apiResponse);
   };
+
+  // update
+
+  // delete
 }
 
 module.exports = ForumsController;
