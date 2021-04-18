@@ -24,13 +24,13 @@ class UsersController {
       const response = await this.usersService.get(filters);
       if (response.fields.length) {
         apiResponse.badRequest('Check for errors', response.fields);
-        return res.status(apiResponse.statusCode).json(apiResponse);
+        return res.response(apiResponse);
       }
       apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
-    return res.status(apiResponse.statusCode).json(apiResponse);
+    return res.response(apiResponse);
   };
 
   getById = async (req, res) => {
@@ -40,14 +40,17 @@ class UsersController {
       const response = await this.usersService.findById(id);
       if (!response) {
         apiResponse.notFound('User is not found');
-        return res.status(apiResponse.statusCode).json(apiResponse);
+        return res.response(apiResponse);
       }
       apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
-    return res.status(apiResponse.statusCode).json(apiResponse);
+    return res.response(apiResponse);
   };
+
+  // delete
+  // patch
 }
 
 module.exports = UsersController;
