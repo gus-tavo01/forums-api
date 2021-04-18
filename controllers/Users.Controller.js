@@ -37,14 +37,15 @@ class UsersController {
     const apiResponse = new ApiResponse();
     try {
       const { id } = req.params;
-      const response = await this.usersService.findById(id);
-      if (!response) {
+      const response = await this.usersService.getById(id);
+      if (!response.payload) {
         apiResponse.notFound('User is not found');
         return res.response(apiResponse);
       }
       apiResponse.ok(response);
     } catch (error) {
-      apiResponse.internalServerError(error);
+      apiResponse.internalServerError(error.message);
+      console.log(error);
     }
     return res.response(apiResponse);
   };

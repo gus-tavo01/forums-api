@@ -21,7 +21,7 @@ class UsersService {
     try {
       // validate id is valid
       const result = await this.usersRepository.findById(id);
-      const serviceResponse = { result, fields: [] };
+      const serviceResponse = { payload: result, fields: [] };
       return serviceResponse;
     } catch (error) {
       // handle error
