@@ -37,7 +37,7 @@ class TopicsController {
     const apiResponse = new ApiResponse();
     try {
       const { forumId } = req.params;
-      const { body } = req;
+      const { body, user } = req;
       // Step get forum
       const getForumResponse = await this.forumsService.getById(forumId);
       if (getForumResponse.fields.length) {
@@ -49,6 +49,12 @@ class TopicsController {
         return res.response(apiResponse);
       }
       const forum = getForumResponse.result;
+
+      // Step validate user can delete topics
+      if (forum.author !== user.username) {
+        apiResponse.forbidden('Only forum author are able to proceed');
+        return res.response(apiResponse);
+      }
 
       // Step create topic
       const newTopic = { ...body, forumId: forum.id };
@@ -84,6 +90,7 @@ class TopicsController {
       apiResponse.ok(createTopicResponse);
     } catch (error) {
       apiResponse.internalServerError(error.message);
+      console.log(error);
     }
     return res.response(apiResponse);
   };
