@@ -8,14 +8,14 @@ class ForumsRepository {
 
   find = async (filters) => {
     const filter = {};
-    const options = { page: 1 };
+    const options = {};
 
     if (filters.name) {
-      filter.name = new RegExp(`.*${filters.name}.*`);
+      filter.name = new RegExp(`.*${filters.name}.*`, 'i');
     }
 
     if (filters.author) {
-      filter.author = new RegExp(`.*${filters.author}.*`);
+      filter.author = new RegExp(`.*${filters.author}.*`, 'i');
     }
 
     if (filters.forumSize) {
@@ -29,6 +29,12 @@ class ForumsRepository {
 
     if (filters.pageSize) {
       options.limit = filters.pageSize;
+    }
+
+    if (filters.sortBy || filters.sortOrder) {
+      options.sort = {
+        [filters.sortBy]: filters.sortOrder,
+      };
     }
 
     return Model.paginate(filter, options);
