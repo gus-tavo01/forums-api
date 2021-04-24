@@ -24,6 +24,8 @@ class ForumsController {
       const defaultFilters = {
         page: 1,
         pageSize: 15,
+        sortBy: 'lastActivity',
+        sortOrder: 'desc',
       };
       const filters = {
         ...defaultFilters,
