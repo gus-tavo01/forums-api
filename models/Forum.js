@@ -25,7 +25,7 @@ const ForumSchema = new Schema({
     default: null,
   },
   participants: {
-    type: String,
+    type: Number,
     required: false,
     default: 0,
   },
