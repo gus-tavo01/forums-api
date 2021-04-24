@@ -1,3 +1,4 @@
+const forumsMapper = require('../utilities/mappers/forumsList');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
 class ForumsService {
@@ -23,7 +24,8 @@ class ForumsService {
       // get by filters
       const result = await this.forumsRepository.find(filters);
       // create service response
-      const serviceResponse = { result, fields: [] };
+      const mapResult = forumsMapper(result);
+      const serviceResponse = { result: mapResult, fields: [] };
       return serviceResponse;
     } catch (error) {
       // repository error
