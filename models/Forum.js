@@ -25,25 +25,9 @@ const ForumSchema = new Schema({
     default: null,
   },
   participants: {
-    type: [
-      {
-        id: {
-          type: Schema.Types.ObjectId,
-          required: true,
-        },
-        username: { type: String, required: true },
-      },
-    ],
-    default: [],
-  },
-  topics: {
-    type: [
-      {
-        topicId: { type: Schema.Types.ObjectId, required: true },
-        name: { type: String, required: true },
-      },
-    ],
-    default: [],
+    type: String,
+    required: false,
+    default: 0,
   },
   lastActivity: {
     type: Date,
