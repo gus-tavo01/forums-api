@@ -34,6 +34,11 @@ const ForumSchema = new Schema({
     required: false,
     default: Date.now,
   },
+  isPrivate: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
 
 ForumSchema.plugin(mongoosePaginate);
