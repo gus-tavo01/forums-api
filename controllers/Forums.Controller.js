@@ -2,7 +2,6 @@ const { Router } = require('express');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
 const ForumsService = require('../services/Forums.Service');
-const ForumRanges = require('../common/constants/forumSizeRanges');
 
 // api/v0/forums
 class ForumsController {
@@ -26,16 +25,14 @@ class ForumsController {
         pageSize: 15,
         sortBy: 'lastActivity',
         sortOrder: 'desc',
+        audience: 'public',
       };
+      // do not allow audience query param
+      delete req.query.audience;
       const filters = {
         ...defaultFilters,
         ...req.query,
       };
-      const { forumSize } = req.query;
-
-      if (forumSize) {
-        filters.forumSize = ForumRanges[forumSize];
-      }
 
       const response = await this.forumsService.get(filters);
       apiResponse.ok(response.result);
