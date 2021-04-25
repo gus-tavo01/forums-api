@@ -72,21 +72,6 @@ class TopicsController {
         );
         return res.response(apiResponse);
       }
-      // Step add topic in forum
-      const createdTopic = createTopicResponse.result;
-      const forumTopic = {
-        topicId: createdTopic.id,
-        name: createdTopic.name,
-      };
-      const forumUpdate = { topics: [...forum.topics, forumTopic] };
-      const updateForumResponse = await this.forumsService.update(
-        forumId,
-        forumUpdate
-      );
-      if (updateForumResponse.fields.length) {
-        apiResponse.unprocessableEntity('Cannot add topic in forum');
-        return res.response(apiResponse);
-      }
       apiResponse.ok(createTopicResponse.result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
@@ -156,19 +141,6 @@ class TopicsController {
         return res.response(apiResponse);
       }
 
-      // Step remove topic from forum
-      const topics = forum.topics.filter(
-        (topic) => topic.topicId.toString() !== id
-      );
-      const forumUpdate = { topics };
-      const updateForumResponse = await this.forumsService.update(
-        forumId,
-        forumUpdate
-      );
-      if (updateForumResponse.fields.length || !updateForumResponse.result) {
-        apiResponse.unprocessableEntity('Topic cannot be removed from forum');
-        return res.response(apiResponse);
-      }
       apiResponse.ok(deleteTopicResponse.result);
     } catch (error) {
       apiResponse.internalServerError(error);
@@ -176,8 +148,6 @@ class TopicsController {
     return res.response(apiResponse);
   };
 
-  // TODO
-  // update name on forums collection if proceed
   // patch
 }
 
