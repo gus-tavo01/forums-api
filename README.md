@@ -49,16 +49,26 @@ Restful API for forums management
 
 ## Core endpoints
 
+- Auth
 - Forums
   - Get forums by filters
 - Topics
   - GET by id
 - Users
   - GET by id
+- Comments
+- Participants
 
 ## Todo doubts
 
-- auth
+- Participants
+  - update forum participants count
+- Comments
+  - GET topics/{id}/comments
+  - POST
+  - DELETE
+  - PATCH
+- Auth
   - fix token expiration validation
 
 ## Testing todos
@@ -108,3 +118,12 @@ Restful API for forums management
 ### Delete my account
 
 - delete forums/topics/comments?
+
+### Invite participants
+
+- endpoint forums/{id}/participants
+  - POST
+    - update count on forum model
+  - DELETE
+    - update count on forum model
+  - GET by filters

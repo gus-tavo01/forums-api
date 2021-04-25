@@ -1,4 +1,5 @@
 const Model = require('../models/Forum');
+const ForumRanges = require('../common/constants/forumSizeRanges');
 
 class ForumsRepository {
   add = async (forum) => {
@@ -19,8 +20,13 @@ class ForumsRepository {
     }
 
     if (filters.forumSize) {
+      const forumSize = ForumRanges[forumSize];
       const { from, to } = filters.forumSize;
       filter.$where = `this.participants.length >= ${from} && this.participants.length <= ${to}`;
+    }
+
+    if (filters.audience) {
+      filter.isPrivate = filters.audience === 'public' ? false : true;
     }
 
     if (filters.page) {
