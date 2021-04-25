@@ -49,12 +49,14 @@ class ForumsController {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
-      const { name, description } = req.body;
+      const { name, description, isPrivate } = req.body;
+      // TODO
       // business validations before create forum
       const forum = {
         name,
         description,
         author: user.username,
+        isPrivate,
       };
 
       const response = await this.forumsService.create(forum);
