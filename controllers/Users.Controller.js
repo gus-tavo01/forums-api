@@ -1,9 +1,9 @@
 const { Router } = require('express');
-const passport = require('passport');
 const ApiResponse = require('../common/ApiResponse');
+const useAuth = require('../middlewares/useJwtAuth');
 const UsersService = require('../services/Users.Service');
 const LoginsService = require('../services/Logins.Service');
-const bcrypt = require('bcrypt');
+const ForumsService = require('../services/Forums.Service');
 
 // api/v0/users
 class UsersController {
@@ -11,10 +11,12 @@ class UsersController {
     this.router = Router();
     this.usersService = new UsersService();
     this.loginsService = new LoginsService();
+    this.forumsService = new ForumsService();
 
     // register endpoint routes
     this.router.get('/', this.get);
     this.router.get('/:id', this.getById);
+    this.router.get('/:id/forums', useAuth, this.getPrivateForums);
   }
 
   get = async (req, res) => {
@@ -28,7 +30,7 @@ class UsersController {
       }
       apiResponse.ok(response.result);
     } catch (error) {
-      apiResponse.internalServerError(error);
+      apiResponse.internalServerError(error.message);
     }
     return res.response(apiResponse);
   };
@@ -47,6 +49,55 @@ class UsersController {
       apiResponse.internalServerError(error.message);
       console.log(error);
     }
+    return res.response(apiResponse);
+  };
+
+  getPrivateForums = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { user } = req;
+      const { id } = req.params;
+      const defaultFilters = {
+        page: 1,
+        pageSize: 15,
+        sortOrder: 'desc',
+        sortBy: 'createDate',
+        author: user.username,
+      };
+      const filters = {
+        ...defaultFilters,
+        ...req.query,
+      };
+
+      // Step verify resource user id exist
+      const userResponse = await this.usersService.getById(id);
+      if (userResponse.fields.length) {
+        apiResponse.badRequest('Invalid user id');
+        return res.response(apiResponse);
+      }
+      if (!userResponse.result) {
+        apiResponse.badRequest('User resource is not found');
+        return res.response(apiResponse);
+      }
+      const resourceUserData = userResponse.result;
+
+      // Step validate auth user is is eq to resource id
+      if (user.username !== resourceUserData.username) {
+        apiResponse.forbidden('Cannot view forums from another user');
+        return res.response(apiResponse);
+      }
+
+      // Step get user own forums
+      const forumsResponse = await this.forumsService.get(filters);
+      if (forumsResponse.fields.length) {
+        apiResponse.badRequest('Invalid request', forumsResponse.fields);
+        return res.response(apiResponse);
+      }
+      apiResponse.ok(forumsResponse.result);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
+    }
+
     return res.response(apiResponse);
   };
 
