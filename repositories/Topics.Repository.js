@@ -8,7 +8,18 @@ class TopicsRepository {
 
   find = async (filters) => {
     const filter = {};
-    const options = { page: 1 };
+    const options = {
+      page: 1,
+      projection: {
+        id: 1,
+        name: 1,
+        content: 1,
+        createDate: 1,
+        updateDate: 1,
+        forumId: 1,
+        commentsLength: { $size: '$comments' },
+      },
+    };
 
     if (filters.name) {
       filter.name = new RegExp(`.*${filters.name}.*`);
