@@ -1,4 +1,5 @@
 const TopicsRepository = require('../repositories/Topics.Repository');
+const topicsMapper = require('../utilities/mappers/topicsList');
 
 class TopicsService {
   constructor() {
@@ -32,7 +33,8 @@ class TopicsService {
     try {
       // ... filters object is not null
       const result = await this.topicsRepository.find(filters);
-      const serviceResponse = { result, fields: [] };
+      const mapped = topicsMapper(result);
+      const serviceResponse = { result: mapped, fields: [] };
       return serviceResponse;
     } catch (error) {
       // handle err
