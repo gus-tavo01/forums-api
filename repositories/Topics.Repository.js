@@ -10,6 +10,8 @@ class TopicsRepository {
     const filter = {};
     const options = {
       page: 1,
+      lean: true,
+      leanWithId: true,
       projection: {
         id: 1,
         name: 1,
