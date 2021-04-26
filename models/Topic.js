@@ -15,7 +15,7 @@ const TopicSchema = new Schema({
     required: false,
     default: Date.now,
   },
-  updatedDate: {
+  updateDate: {
     type: Date,
     required: false,
     default: null,
