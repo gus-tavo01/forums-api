@@ -20,23 +20,6 @@ const TopicSchema = new Schema({
     required: false,
     default: null,
   },
-  comments: {
-    type: [
-      {
-        from: { type: String, required: true },
-        to: { type: String, required: false, default: null },
-        message: { type: String, required: true },
-        createDate: {
-          type: Date,
-          required: false,
-          default: Date.now,
-        },
-        likes: { type: [Schema.Types.ObjectId], default: [] },
-        dislikes: { type: [Schema.Types.ObjectId], default: [] },
-      },
-    ],
-    default: [],
-  },
   forumId: {
     type: Schema.Types.ObjectId,
     required: true,
