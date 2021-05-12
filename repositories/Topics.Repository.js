@@ -50,7 +50,7 @@ class TopicsRepository {
     return Topic.findByIdAndRemove(id);
   };
 
-  modify = (id, patch) => {
+  modify = async (id, patch) => {
     return Topic.findByIdAndUpdate(id, patch);
   };
 }
