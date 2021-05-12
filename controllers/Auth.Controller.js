@@ -46,14 +46,18 @@ class AuthController {
       }
 
       const secret = process.env.JWT_SECRET;
-      const expiresIn = process.env.TOKEN_EXPIRATION;
+      const expInMins = process.env.TOKEN_EXPIRATION;
+      const expiresIn = Math.floor(Date.now() / 1000) + expInMins * 60;
       const payload = {
         iat: Date.now(),
         sub: account.id,
+        exp: expiresIn,
       };
-      const options = { expiresIn };
-      const token = jsonwebtoken.sign(payload, secret, options);
-      const result = { token, expiresIn };
+      const token = jsonwebtoken.sign(payload, secret);
+      const result = {
+        token,
+        expiresIn: `${expInMins} Minutes`,
+      };
       apiResponse.ok(result);
     } catch (error) {
       apiResponse.internalServerError(error.message);
