@@ -3,7 +3,7 @@ const mongoosePaginate = require('mongoose-paginate-v2');
 
 const CommentSchema = new Schema({
   from: { type: String, required: true },
-  to: { type: String, required: false, default: null },
+  to: { type: String, required: false },
   message: { type: String, required: true },
   createDate: {
     type: Date,
@@ -12,6 +12,7 @@ const CommentSchema = new Schema({
   },
   likes: { type: [Schema.Types.ObjectId], default: [] },
   dislikes: { type: [Schema.Types.ObjectId], default: [] },
+  topicId: { type: Schema.Types.ObjectId },
 });
 
 CommentSchema.plugin(mongoosePaginate);

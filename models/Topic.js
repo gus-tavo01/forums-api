@@ -24,6 +24,11 @@ const TopicSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
   },
+  comments: {
+    Type: Number,
+    required: false,
+    default: 0,
+  },
 });
 
 TopicSchema.plugin(mongoosePaginate);
