@@ -1,8 +1,8 @@
 const Comment = require('../models/Comment');
 
 class CommentsRepository {
-  find = async (topicId, filters) => {
-    const filter = { topicId };
+  find = async (filters) => {
+    const filter = { topicId: filters.topicId };
     const options = {
       page: 1,
     };
