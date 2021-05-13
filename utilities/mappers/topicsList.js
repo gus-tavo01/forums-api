@@ -7,7 +7,7 @@ module.exports = (topics) => {
     createDate: topic.createDate,
     updateDate: topic.updateDate,
     forumId: topic.forumId,
-    comments: topic.commentsLength,
+    comments: topic.comments,
   }));
   return result;
 };
