@@ -5,6 +5,7 @@ class ForumsService {
   constructor() {
     this.forumsRepository = new ForumsRepository();
   }
+
   create = async (forum) => {
     try {
       // validate empties and required fields
