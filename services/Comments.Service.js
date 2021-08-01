@@ -8,7 +8,7 @@ class CommentsService {
   get = async (filters) => {
     try {
       const result = await this.commentsRepo.find(filters);
-      return { payload: result, fields: [] };
+      return { result, fields: [] };
     } catch (error) {
       console.log(error);
     }
@@ -17,7 +17,7 @@ class CommentsService {
   create = async (message) => {
     try {
       const result = await this.commentsRepo.add(message);
-      return { payload: result, fields: [] };
+      return { result, fields: [] };
     } catch (error) {
       console.log(error);
     }
