@@ -25,8 +25,8 @@ class ForumsRepository {
       filter.$where = `this.participants.length >= ${from} && this.participants.length <= ${to}`;
     }
 
-    if (filters.audience) {
-      filter.isPrivate = filters.audience === 'public' ? false : true;
+    if (filters.public !== undefined) {
+      filter.isPrivate = !filters.public;
     }
 
     if (filters.page) {

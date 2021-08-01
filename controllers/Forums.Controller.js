@@ -25,13 +25,11 @@ class ForumsController {
         pageSize: 15,
         sortBy: 'lastActivity',
         sortOrder: 'desc',
-        audience: 'public',
       };
-      // do not allow audience query param
-      delete req.query.audience;
       const filters = {
         ...defaultFilters,
         ...req.query,
+        public: true,
       };
 
       const response = await this.forumsService.get(filters);
