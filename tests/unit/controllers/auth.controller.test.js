@@ -1,5 +1,5 @@
 require('dotenv').config();
-const mockResponse = require('../test-helpers/mockRes');
+const mockResponse = require('../helpers/mockResponse');
 const { getMockReq } = require('@jest-mock/express');
 const AuthController = require('../../../controllers/Auth.Controller');
 const LoginsService = require('../../../services/Logins.Service');
