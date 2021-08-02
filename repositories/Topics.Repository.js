@@ -12,15 +12,6 @@ class TopicsRepository {
       page: 1,
       lean: true,
       leanWithId: true,
-      projection: {
-        id: 1,
-        name: 1,
-        content: 1,
-        createDate: 1,
-        updateDate: 1,
-        forumId: 1,
-        commentsLength: { $size: '$comments' },
-      },
     };
 
     if (filters.name) {
@@ -50,7 +41,7 @@ class TopicsRepository {
     return Topic.findByIdAndRemove(id);
   };
 
-  modify = (id, patch) => {
+  modify = async (id, patch) => {
     return Topic.findByIdAndUpdate(id, patch);
   };
 }

@@ -38,6 +38,7 @@ class TopicsService {
       return serviceResponse;
     } catch (error) {
       // handle err
+      console.log(error);
     }
   };
 
@@ -48,6 +49,7 @@ class TopicsService {
       return serviceResponse;
     } catch (error) {
       // handle errors
+      console.log(error);
     }
   };
 

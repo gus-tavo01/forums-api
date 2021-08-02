@@ -11,20 +11,19 @@ function configureAuth() {
     secretOrKey: process.env.JWT_SECRET,
   };
   const jwtStrategy = new JwtStrategy(options, (jwt_payload, done) => {
-    // TODO
-    // verify token has expired
-    // if (Date.now() > jwt_payload.exp) {
-    //   return done('Token has expired', null);
-    // }
-
     // token belongs to an existing user
-    loginsRepository.findById(jwt_payload.sub).then((account) => {
-      if (account) {
-        return done(null, account);
-      } else {
-        return done('Error getting the user account', false);
-      }
-    });
+    loginsRepository
+      .findById(jwt_payload.sub)
+      .then((account) => {
+        if (account) {
+          return done(null, account);
+        } else {
+          return done(null, null, 'Error getting the user account');
+        }
+      })
+      .catch((err) => {
+        return done(err, null);
+      });
   });
   passport.use(jwtStrategy);
 }

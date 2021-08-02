@@ -50,9 +50,9 @@ class TopicsController {
       }
       const forum = getForumResponse.result;
 
-      // Step validate user can delete topics
+      // Step validate user can create topics
       if (forum.author !== user.username) {
-        apiResponse.forbidden('Only forum author are able to proceed');
+        apiResponse.forbidden('Only forum author is able to add topics');
         return res.response(apiResponse);
       }
 

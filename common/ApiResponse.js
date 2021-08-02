@@ -26,7 +26,8 @@ class ApiResponse {
   badRequest = (errorMessage, fields) => {
     this.statusCode = 400;
     this.message = 'Bad_Request';
-    this.errorMessage = errorMessage;
+    this.errorMessage =
+      errorMessage ?? 'The request contains validation errors';
     this.fields = fields;
   };
 
@@ -39,31 +40,33 @@ class ApiResponse {
   forbidden = (errorMessage) => {
     this.statusCode = 403;
     this.message = 'Forbidden';
-    this.errorMessage = errorMessage;
+    this.errorMessage =
+      errorMessage ?? 'This action requires additional permissions';
   };
 
   notFound = (errorMessage) => {
     this.statusCode = 404;
     this.message = 'Not_Found';
-    this.errorMessage = errorMessage;
+    this.errorMessage = errorMessage ?? 'Resource is not found';
   };
 
   conflict = (errorMessage) => {
     this.statusCode = 409;
     this.message = 'Conflict';
-    this.errorMessage = errorMessage;
+    this.errorMessage = errorMessage ?? 'Resource already exists';
   };
 
   unprocessableEntity = (errorMessage) => {
     this.statusCode = 422;
     this.message = 'Unprocessable_Entity';
-    this.errorMessage = errorMessage;
+    this.errorMessage =
+      errorMessage ?? 'Resource cannot be processed, try again later';
   };
 
   internalServerError = (errorMessage) => {
     this.statusCode = 500;
     this.message = 'Internal_Server_Error';
-    this.errorMessage = errorMessage;
+    this.errorMessage = errorMessage ?? 'Something went wrong';
   };
 }
 

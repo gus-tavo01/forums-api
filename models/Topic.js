@@ -20,26 +20,14 @@ const TopicSchema = new Schema({
     required: false,
     default: null,
   },
-  comments: {
-    type: [
-      {
-        from: { type: String, required: true },
-        to: { type: String, required: false, default: null },
-        message: { type: String, required: true },
-        createDate: {
-          type: Date,
-          required: false,
-          default: Date.now,
-        },
-        likes: { type: Number, default: 0 },
-        dislikes: { type: Number, default: 0 },
-      },
-    ],
-    default: [],
-  },
   forumId: {
     type: Schema.Types.ObjectId,
     required: true,
+  },
+  comments: {
+    Type: Number,
+    required: false,
+    default: 0,
   },
 });
 

@@ -12,25 +12,21 @@ Restful API for forums management
 - Run the application locally `npm run dev`
 - Run the tests `npm run test`
 
-## App Layers
+## Project Structure
 
-### Controller/Endpoint
+### Controllers/Endpoints
 
-- Consumes services
+- Define HTTP status
+- Access data layer through Model
 - Business specific validations
-- Http status code is defined here
-
-### Service
-
-- Consumes repositories
-- Basic validations for empties and required fields
-- Create service response
+- Invoke model validator
 
 ### Repositories
 
+- validate empties | model validator?
 - Consumes DB
 - Create DB queries
-- No validations here
+- Return mapped entity
 
 ## App testing
 
@@ -50,28 +46,15 @@ Restful API for forums management
 ## Core endpoints
 
 - Auth
+  - Login
 - Forums
   - Get forums by filters
-- Topics
-  - GET by id
-- Users
-  - GET by id
-- Comments
+  - POST forum
 - Participants
+  - POST add to forum
+  - DELETE remove from forum 
 
-## Todo doubts
-
-- Participants
-  - update forum participants count
-- Comments
-  - GET topics/{id}/comments
-  - POST
-  - DELETE
-  - PATCH
-- Auth
-  - fix token expiration validation
-
-## Testing todos
+## Testing todos (remove later)
 
 - Users controller
   - post
@@ -79,51 +62,67 @@ Restful API for forums management
 - Forums controller
   - get by filters
   - post
-- Topics controller
-
-## Pendings to be defined
-
-- validator for endpoints
-  - POST/PATCH
-  - schema validator?
-- payload signature
-- what routes would be public
-  - get forums by filters
-  - get topic by id
-  - get topics
-  - get comments
-  - get user profile
-- service layer
-  - validations
-  - service response
-  - map service response on apiResponse
-- user conf schema
-  - account preferences
-    - language
-  - theme
+- Comments controller
+  - integration, unit
 
 ## Incoming Features
-
-### Load forum image
-
-- use cloudinary
-
-### Forgot password
-
-- client -> api POST call { username, email }
-- server -> verify if username and email match with an existing account
-- server -> send email with { username, provisionalPwd }
-- client -> logs in { username, provisionalPwd }
-
-### Delete my account
-
-- delete forums/topics/comments?
 
 ### Invite participants
 
 - endpoint forums/{id}/participants
   - POST
     - update count on forum model
-  - DELETE
+  - DELETE /{id}
     - update count on forum model
-  - GET by filters
+  - GET /{id}
+    - retrieve participant profile?
+    - to be defined later
+  - PATCH /{id}
+    - edit role on forum
+
+### Load images
+
+- available when
+  - creating a forum
+  - user avatar
+  - posting a comment
+- use cloudinary
+
+### Forgot password (Complete Flow)
+
+- client -> api POST call request a secret code for { username, email }
+- server -> verify if username and email matches with an existing account
+  - success -> return successful response, then send an email with the secret code
+  - failure -> return failed response, do not send any email
+- client -> got response from BE
+  - success -> display a modal to enter the secret code
+  - failure -> display a message that the account is not asociated with the provided email
+- client -> send request POST (BE verifies secret code) {}
+- server -> validate secret code is valid (equals as the genereted previously)
+  - success -> send successful response
+  - failure -> send failure response, set tries count +1
+- client -> got response from BE
+  - success -> redirect user to the reset pwd interface
+  - failure -> display message that the code is incorrect
+
+### Notifications (TBD)
+
+- send notifications to users/forums
+
+### Like/dislike comments
+
+- endpoint PATCH forums/{id}/comments/{id}
+- body { like: bool, dislike: bool }
+- constraints
+  - both cannot be set, return unprocessable if both are set
+  - each comment can be liked/disliked once per user
+
+### Delete my account
+
+- do not delete forums/comments
+- disable user
+
+### Update preferences
+
+- change app language
+- change app theme
