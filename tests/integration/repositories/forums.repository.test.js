@@ -1,12 +1,12 @@
 require('dotenv').config();
 const ForumsRepository = require('../../../repositories/Forums.Repository');
-const setupDb = require('../../../config/database');
+const database = require('../../../config/database');
 
 let forumsRepo;
 
 // setup DB
 beforeAll(() => {
-  setupDb();
+  database.connect();
   forumsRepo = new ForumsRepository();
 });
 
