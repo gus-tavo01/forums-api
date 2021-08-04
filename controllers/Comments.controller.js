@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
-const ForumsService = require('../services/Forums.Service');
+const ForumsRepository = require('../repositories/Forums.Repository');
 const TopicsService = require('../services/Topics.Service');
 const CommentsService = require('../services/Comments.Service');
 const useJwtAuth = require('../middlewares/useJwtAuth');
@@ -8,7 +8,7 @@ const useJwtAuth = require('../middlewares/useJwtAuth');
 class CommentsController {
   constructor() {
     this.router = Router({ mergeParams: true });
-    this.forumsService = new ForumsService();
+    this.forumsRepo = new ForumsRepository();
     this.topicsService = new TopicsService();
     this.commentsService = new CommentsService();
 
@@ -33,11 +33,12 @@ class CommentsController {
       };
 
       // Step Get forum and verify is public
-      const getForum = await this.forumsService.getById(forumId);
-      // handle getForum errors
-      const {
-        result: { isPrivate },
-      } = getForum;
+      const getForum = await this.forumsRepo.findById(forumId);
+      if (!getForum) {
+        apiResponse.badRequest('Invalid forum, not found');
+        return res.response(apiResponse);
+      }
+      const { isPrivate } = getForum;
 
       if (isPrivate) {
         apiResponse.forbidden('You are not allowed to see this forum content');
