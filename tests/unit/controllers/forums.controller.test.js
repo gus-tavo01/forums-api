@@ -93,4 +93,38 @@ describe('Forums Controller POST', () => {
       expect.objectContaining(expectedResponse)
     );
   });
+
+  test('When forums repo fails on adding a forum, expect to catch the error', async () => {
+    // Arrange
+    const forumData = {
+      name: 'Topic for this one',
+      description: 'This is a description',
+      isPrivate: true,
+    };
+    const req = getMockReq({
+      body: forumData,
+      user: { username: 'Panchito.g' },
+    });
+    const errorMessage = 'Something happened';
+    const expectedResponse = {
+      statusCode: 500,
+      fields: [],
+      message: 'Internal_Server_Error',
+      payload: null,
+      errorMessage,
+    };
+
+    // mocks
+    ForumsRepository.prototype.add = jest.fn(async () => {
+      throw new Error(errorMessage);
+    });
+
+    // Act
+    await forumsController.post(req, res);
+
+    // Assert
+    expect(res.response).toHaveBeenCalledWith(
+      expect.objectContaining(expectedResponse)
+    );
+  });
 });
