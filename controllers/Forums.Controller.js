@@ -59,7 +59,6 @@ class ForumsController {
       const { isValid, fields } = await validate(forum, forumValidator);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
-        console.log(fields);
         return res.response(apiResponse);
       }
 
