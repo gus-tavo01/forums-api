@@ -58,7 +58,7 @@ class ForumsController {
       // Step invoke model validator
       const { isValid, fields } = await validate(forum, forumValidator);
       if (!isValid) {
-        apiResponse.badRequest('Check for errors', fields);
+        apiResponse.badRequest('Validation errors', fields);
         console.log(fields);
         return res.response(apiResponse);
       }
