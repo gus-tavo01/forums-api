@@ -1,15 +1,15 @@
 require('dotenv').config();
-const mockResponse = require('../helpers/mockResponse');
+const { res, clearMockRes } = require('../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
-const { res, clearMockRes } = mockResponse();
 
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
 
 const forumsController = new ForumsController();
 
+//#region Test Suite Setup
 beforeAll(() => {
   jest.setTimeout(5 * 60 * 1000);
 });
@@ -17,6 +17,7 @@ beforeAll(() => {
 afterEach(() => {
   clearMockRes();
 });
+//#endregion Test Suite Setup
 
 describe('Forums Controller POST', () => {
   afterEach(() => {
@@ -52,18 +53,16 @@ describe('Forums Controller POST', () => {
     };
 
     // Act
-    await forumsController.post(req, res);
+    const response = await forumsController.post(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payload: expectedPayload,
-        statusCode: 201,
-        fields: [],
-        errorMessage: null,
-        message: 'Created',
-      })
-    );
+    expect(response).toMatchObject({
+      payload: expectedPayload,
+      statusCode: 201,
+      fields: [],
+      errorMessage: null,
+      message: 'Created',
+    });
   });
 
   test('When forum data is invalid, expect response to have validation errors', async () => {
@@ -81,17 +80,15 @@ describe('Forums Controller POST', () => {
         `Field 'isPrivate' is not a valid boolean`,
       ],
       message: 'Bad_Request',
-      errorMessage: 'Check for errors',
+      errorMessage: 'Validation errors',
       payload: null,
     };
 
     // Act
-    await forumsController.post(req, res);
+    const response = await forumsController.post(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining(expectedResponse)
-    );
+    expect(response).toMatchObject(expectedResponse);
   });
 
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {
@@ -120,11 +117,9 @@ describe('Forums Controller POST', () => {
     });
 
     // Act
-    await forumsController.post(req, res);
+    const response = await forumsController.post(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining(expectedResponse)
-    );
+    expect(response).toMatchObject(expectedResponse);
   });
 });
