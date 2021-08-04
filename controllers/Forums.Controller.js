@@ -1,13 +1,16 @@
 const { Router } = require('express');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
-const ForumsService = require('../services/Forums.Service');
+const ForumsRepository = require('../repositories/Forums.Repository');
+// validators
+const validate = require('../common/processors/validate');
+const forumValidator = require('../utilities/validators/forum.validator');
 
 // api/v0/forums
 class ForumsController {
   constructor() {
     this.router = Router();
-    this.forumsService = new ForumsService();
+    this.forumsRepo = new ForumsRepository();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
@@ -32,8 +35,8 @@ class ForumsController {
         public: true,
       };
 
-      const response = await this.forumsService.get(filters);
-      apiResponse.ok(response.result);
+      const response = await this.forumsRepo.find(filters);
+      apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
@@ -45,8 +48,6 @@ class ForumsController {
     try {
       const { user } = req;
       const { name, description, isPrivate } = req.body;
-      // TODO
-      // business validations before create forum
       const forum = {
         name,
         description,
@@ -54,21 +55,27 @@ class ForumsController {
         isPrivate,
       };
 
-      const response = await this.forumsService.create(forum);
-      if (response.fields.length) {
-        apiResponse.badRequest('Check for errors');
+      // Step invoke model validator
+      const { isValid, fields } = await validate(forum, forumValidator);
+      if (!isValid) {
+        apiResponse.badRequest('Check for errors', fields);
+        console.log(fields);
         return res.response(apiResponse);
       }
-      if (!response.result) {
+
+      // Step create forum
+      const response = await this.forumsRepo.add(forum);
+      if (!response) {
         apiResponse.unprocessableEntity(
           'Forum cannot be created, try again later'
         );
-        return res.repsonse(apiResponse);
+        return res.response(apiResponse);
       }
-      apiResponse.created(response.result);
+      apiResponse.created(response);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
+
     return res.response(apiResponse);
   };
 
