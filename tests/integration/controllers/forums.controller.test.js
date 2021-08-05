@@ -32,7 +32,7 @@ describe('Forums Controller', () => {
   test('When something, expect succeed', async () => {
     // Arrange
     const req = getMockReq({
-      body: { name: 'Nope', description: 'No description', isPrivate: true },
+      body: { topic: 'Nope', description: 'No description', isPrivate: true },
       user: { username: 'ticky' },
     });
 

@@ -29,7 +29,7 @@ describe('Forums Controller POST', () => {
   test('When provided forum data is valid, expect response to be success', async () => {
     // Arrange
     const forumData = {
-      name: 'new name or topic',
+      topic: 'new name or topic',
       description: 'Changes on arch',
       isPrivate: false,
     };
@@ -75,7 +75,7 @@ describe('Forums Controller POST', () => {
     const expectedResponse = {
       statusCode: 400,
       fields: [
-        `Field 'name' is not a string`,
+        `Field 'topic' is not a string`,
         `Field 'description' is not a string`,
         `Field 'isPrivate' is not a valid boolean`,
       ],
@@ -94,7 +94,7 @@ describe('Forums Controller POST', () => {
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {
     // Arrange
     const forumData = {
-      name: 'Topic for this one',
+      topic: 'Topic for this one',
       description: 'This is a description',
       isPrivate: true,
     };

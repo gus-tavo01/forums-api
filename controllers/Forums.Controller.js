@@ -47,9 +47,9 @@ class ForumsController {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
-      const { name, description, isPrivate } = req.body;
+      const { topic, description, isPrivate } = req.body;
       const forum = {
-        name,
+        topic,
         description,
         author: user.username,
         isPrivate,
