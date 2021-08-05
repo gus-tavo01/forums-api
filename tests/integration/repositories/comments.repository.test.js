@@ -1,16 +1,20 @@
 require('dotenv').config();
 const TopicsRepository = require('../../../repositories/Topics.Repository');
 const CommentsRepository = require('../../../repositories/Comments.Repository');
-const setupDb = require('../../../config/database');
+const database = require('../../../config/database');
 
 // test suite globals
 let topicsRepo;
 let commentsRepo;
 
 beforeAll(() => {
-  setupDb();
+  database.connect();
   topicsRepo = new TopicsRepository();
   commentsRepo = new CommentsRepository();
+});
+
+afterAll(() => {
+  database.disconnect();
 });
 
 describe('Comments Repository', () => {

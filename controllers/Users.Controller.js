@@ -3,7 +3,7 @@ const ApiResponse = require('../common/ApiResponse');
 const useAuth = require('../middlewares/useJwtAuth');
 const UsersService = require('../services/Users.Service');
 const LoginsService = require('../services/Logins.Service');
-const ForumsService = require('../services/Forums.Service');
+const ForumsRepository = require('../repositories/Forums.Repository');
 
 // api/v0/users
 class UsersController {
@@ -11,7 +11,7 @@ class UsersController {
     this.router = Router();
     this.usersService = new UsersService();
     this.loginsService = new LoginsService();
-    this.forumsService = new ForumsService();
+    this.forumsRepo = new ForumsRepository();
 
     // register endpoint routes
     this.router.get('/', this.get);
@@ -62,11 +62,11 @@ class UsersController {
         pageSize: 15,
         sortOrder: 'desc',
         sortBy: 'createDate',
-        author: user.username,
       };
       const filters = {
         ...defaultFilters,
         ...req.query,
+        author: user.username,
       };
 
       // Step verify resource user id exist
@@ -88,12 +88,8 @@ class UsersController {
       }
 
       // Step get user own forums
-      const forumsResponse = await this.forumsService.get(filters);
-      if (forumsResponse.fields.length) {
-        apiResponse.badRequest('Invalid request', forumsResponse.fields);
-        return res.response(apiResponse);
-      }
-      apiResponse.ok(forumsResponse.result);
+      const forumsResponse = await this.forumsRepo.find(filters);
+      apiResponse.ok(forumsResponse);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
