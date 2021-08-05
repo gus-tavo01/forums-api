@@ -2,7 +2,7 @@ const { Schema, model } = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const ForumSchema = new Schema({
-  name: {
+  topic: {
     type: String,
     required: true,
   },
@@ -19,18 +19,13 @@ const ForumSchema = new Schema({
     required: false,
     default: Date.now,
   },
-  // updateDate: { type: Date, required: true, default: null, },
+  updateDate: { type: Date, required: false, default: Date.now },
   imageSrc: {
     type: String,
     required: false,
     default: null,
   },
-  participants: {
-    type: Number,
-    required: false,
-    default: 0,
-  },
-  // participants: { type: Model, required: false, default: [] },
+  participants: { type: Number, required: false, default: 0 },
   lastActivity: {
     type: Date,
     required: false,
