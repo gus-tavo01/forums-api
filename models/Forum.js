@@ -36,6 +36,7 @@ const ForumSchema = new Schema({
     required: false,
     default: false,
   },
+  isActive: { type: Boolean, required: false, default: true },
 });
 
 ForumSchema.plugin(mongoosePaginate);

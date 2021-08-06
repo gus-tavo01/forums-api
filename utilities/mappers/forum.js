@@ -9,4 +9,5 @@ module.exports = (forumData) => ({
   participants: forumData.participants,
   imageSrc: forumData.imageSrc,
   isPrivate: forumData.isPrivate,
+  isActive: forumData.isActive,
 });

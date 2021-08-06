@@ -1,5 +1,5 @@
 module.exports = (forums) => {
-  const result = { ...forums, };
+  const result = { ...forums };
   result.docs = forums.docs.map((forum) => ({
     id: forum.id,
     name: forum.name,
@@ -11,6 +11,7 @@ module.exports = (forums) => {
     lastActivity: forum.lastActivity,
     imageSrc: forum.imageSrc,
     isPrivate: forum.isPrivate,
+    isActive: forum.isActive,
   }));
   return result;
 };

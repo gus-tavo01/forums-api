@@ -24,6 +24,7 @@ class ForumsController {
     const apiResponse = new ApiResponse();
     try {
       const defaultFilters = {
+        isActive: true,
         page: 1,
         pageSize: 15,
         sortBy: 'lastActivity',

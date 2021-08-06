@@ -25,6 +25,10 @@ class ForumsRepository {
       filter.isPrivate = !filters.public;
     }
 
+    if (filters.isActive !== undefined) {
+      filter.isActive = filters.isActive;
+    }
+
     if (filters.page) {
       options.page = filters.page;
     }
