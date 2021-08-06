@@ -10,6 +10,10 @@ beforeAll(() => {
   forumsRepo = new ForumsRepository();
 });
 
+afterAll(() => {
+  database.disconnect();
+});
+
 describe('Forums Repository Find', () => {
   test('When filters are provided, expect to retrieve a list of forums', async () => {
     // Arrange
