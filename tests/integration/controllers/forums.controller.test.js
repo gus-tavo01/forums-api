@@ -3,7 +3,7 @@ const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
 // mocks
 const { getMockReq } = require('@jest-mock/express');
-const { res, clearMockRes } = require('../../unit/helpers/mockResponse')();
+const { res, clearMockRes } = require('../../helpers/mockResponse')();
 // setup
 const database = require('../../../config/database');
 
@@ -14,9 +14,9 @@ let forumsRepo;
 //#region test setup
 beforeAll(() => {
   jest.setTimeout(5 * 60 * 1000);
+  database.connect();
   forumsController = new ForumsController();
   forumsRepo = new ForumsRepository();
-  database.connect();
 });
 
 afterAll(() => {
@@ -29,7 +29,7 @@ afterEach(() => {
 //#endregion test setup
 
 describe('Forums Controller', () => {
-  test('When something, expect succeed', async () => {
+  test('When forum data is valid, expect to be success', async () => {
     // Arrange
     const req = getMockReq({
       body: { topic: 'Nope', description: 'No description', isPrivate: true },
@@ -40,8 +40,10 @@ describe('Forums Controller', () => {
     const response = await forumsController.post(req, res);
 
     // test clean up
-    const { payload } = response;
-    await forumsRepo.remove(payload.id);
+    try {
+      const { payload } = response;
+      await forumsRepo.remove(payload.id);
+    } catch (err) {}
 
     // Assert
     expect(response).toMatchObject({
