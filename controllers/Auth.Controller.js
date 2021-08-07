@@ -97,8 +97,11 @@ class AuthController {
       }
 
       // Step create user profile
-      const profile = { username, email, dateOfBirth };
-      const createdProfile = await this.usersRepo.add(profile);
+      const createdProfile = await this.usersRepo.add({
+        username,
+        email,
+        dateOfBirth,
+      });
       if (!createdProfile) {
         apiResponse.unprocessableEntity(
           'User profile cannot be created, please try again later'
@@ -111,8 +114,11 @@ class AuthController {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Step create login account
-      const account = { username, passwordHash, userId: createdProfile.id };
-      const createdAccount = await this.accountsRepo.add(account);
+      const createdAccount = await this.accountsRepo.add({
+        username,
+        passwordHash,
+        userId: createdProfile.id,
+      });
       if (!createdAccount) {
         // Step rollback user profile
         await this.usersRepo.remove(createdProfile.id);
@@ -121,7 +127,7 @@ class AuthController {
         );
         return res.response(apiResponse);
       }
-      apiResponse.created(username);
+      apiResponse.created(createdAccount.username);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
