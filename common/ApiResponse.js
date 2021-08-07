@@ -7,7 +7,7 @@ class ApiResponse {
 
   ok = (payload) => {
     this.statusCode = 200;
-    this.message = 'Success';
+    this.message = 'Ok';
     this.payload = payload;
   };
 
