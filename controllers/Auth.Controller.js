@@ -77,13 +77,7 @@ class AuthController {
   register = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const {
-        username,
-        email,
-        password,
-        dateOfBirth,
-        selfDescription,
-      } = req.body;
+      const { username, email, password, dateOfBirth } = req.body;
 
       // Step validate input fields
       const { isValid, fields } = await validate(
@@ -103,7 +97,7 @@ class AuthController {
       }
 
       // Step create user profile
-      const profile = { username, email, dateOfBirth, selfDescription };
+      const profile = { username, email, dateOfBirth };
       const createdProfile = await this.usersRepo.add(profile);
       if (!createdProfile) {
         apiResponse.unprocessableEntity(
