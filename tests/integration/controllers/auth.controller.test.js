@@ -66,3 +66,19 @@ describe('Auth Controller Register', () => {
     });
   });
 });
+
+// describe('Auth Controller Login', () => {
+// test('When login credentials are valid, expect to get logged in', async () => {
+// Arrange
+// create login account
+// Act
+// login()
+// test clean up
+// delete account, profile
+// Assert
+// login response is success
+// an access token is generated
+// });
+// });
+
+// describe('Auth Controller ResetPassword', () => {});
