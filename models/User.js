@@ -5,20 +5,13 @@ const UserSchema = new Schema({
   username: { type: String, required: true },
   email: { type: String, required: true },
   dateOfBirth: { type: Date, required: true },
+  selfDescription: { type: String, required: false },
   createDate: {
     type: Date,
     required: false,
     default: Date.now,
   },
-  // preferences: {
-  //   theme: {
-  //     type: String,
-  //   },
-  //   language: {
-  //     type: Schema.Types.ObjectId,
-  //     ref: 'Language',
-  //   },
-  // },
+  updateDate: { type: Date, required: false, default: null },
 });
 
 UserSchema.plugin(mongoosePaginate);
