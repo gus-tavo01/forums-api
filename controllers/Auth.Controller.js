@@ -3,8 +3,14 @@ const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
+// repositories
+const AccountsRepository = require('../repositories/Accounts.Repository');
+const UsersRepository = require('../repositories/Users.Repository');
+
 const LoginsService = require('../services/Logins.Service');
 const UsersService = require('../services/Users.Service');
+const validate = require('../common/processors/validate');
+const postAccountValidator = require('../utilities/validators/post.account.validator');
 
 // api/v0/auth
 class AuthController {
@@ -12,6 +18,9 @@ class AuthController {
     this.router = Router();
     this.loginsService = new LoginsService();
     this.usersService = new UsersService();
+
+    this.accountsRepo = new AccountsRepository();
+    this.usersRepo = new UsersRepository();
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
@@ -68,16 +77,38 @@ class AuthController {
   register = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { username, email, dateOfBirth, password } = req.body;
+      const {
+        username,
+        email,
+        password,
+        dateOfBirth,
+        selfDescription,
+      } = req.body;
 
-      // TODO
-      // validate request body here
-      // generate fields array
+      // Step validate input fields
+      const { isValid, fields } = await validate(
+        req.body,
+        postAccountValidator
+      );
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
-      // Step find username if already exist
-      const getUserResponse = await this.loginsService.findByUsername(username);
-      if (getUserResponse.result) {
-        apiResponse.conflict('This username already exists');
+      // Step validate account does not exist yet
+      const foundAccount = await this.accountsRepo.findByUsername(username);
+      if (foundAccount) {
+        apiResponse.conflict('This account already exists');
+        return res.response(apiResponse);
+      }
+
+      // Step create user profile
+      const profile = { username, email, dateOfBirth, selfDescription };
+      const createdProfile = await this.usersRepo.add(profile);
+      if (!createdProfile) {
+        apiResponse.unprocessableEntity(
+          'User profile cannot be created, please try again later'
+        );
         return res.response(apiResponse);
       }
 
@@ -86,36 +117,17 @@ class AuthController {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Step create login account
-      const login = { username, passwordHash };
-      const createLoginResponse = await this.loginsService.create(login);
-      if (createLoginResponse.fields.length) {
-        apiResponse.badRequest(
-          'You have some errors',
-          createLoginResponse.fields
-        );
-        return res.response(apiResponse);
-      }
-      if (!createLoginResponse.result) {
+      const account = { username, passwordHash, userId: createdProfile.id };
+      const createdAccount = await this.accountsRepo.add(account);
+      if (!createdAccount) {
+        // Step rollback user profile
+        await this.usersRepo.remove(createdProfile.id);
         apiResponse.unprocessableEntity(
           'Login account cannot be created, please try again later'
         );
         return res.response(apiResponse);
       }
-
-      // Step create user profile
-      const user = { username, email, dateOfBirth };
-      const createUserResponse = await this.usersService.add(user);
-      if (createUserResponse.fields.length) {
-        apiResponse.badRequest('Check for errors', createUserResponse.fields);
-        return res.response(apiResponse);
-      }
-      if (!createUserResponse.result) {
-        apiResponse.unprocessableEntity(
-          'User cannot be created, please try again later'
-        );
-        return res.response(apiResponse);
-      }
-      apiResponse.created(createUserResponse.result);
+      apiResponse.created(username);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
