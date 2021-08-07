@@ -2,7 +2,6 @@ const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
 const useAuth = require('../middlewares/useJwtAuth');
 const UsersService = require('../services/Users.Service');
-const LoginsService = require('../services/Logins.Service');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
 // api/v0/users
@@ -10,7 +9,6 @@ class UsersController {
   constructor() {
     this.router = Router();
     this.usersService = new UsersService();
-    this.loginsService = new LoginsService();
     this.forumsRepo = new ForumsRepository();
 
     // register endpoint routes
