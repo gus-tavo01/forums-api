@@ -9,8 +9,10 @@ const UsersRepository = require('../repositories/Users.Repository');
 
 const LoginsService = require('../services/Logins.Service');
 const UsersService = require('../services/Users.Service');
+// validators
 const validate = require('../common/processors/validate');
 const postAccountValidator = require('../utilities/validators/post.account.validator');
+const loginValidator = require('../utilities/validators/login.validator');
 
 // api/v0/auth
 class AuthController {
@@ -31,43 +33,46 @@ class AuthController {
     const { username, password } = req.body;
     const apiResponse = new ApiResponse();
     try {
-      const serviceResponse = await this.loginsService.findByUsername(username);
-      if (serviceResponse.fields.length) {
-        apiResponse.badRequest(
-          'Invalid username field',
-          serviceResponse.fields
-        );
+      // Step validate entity
+      const { isValid, fields } = await validate(req.body, loginValidator);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
       }
 
-      if (!serviceResponse.result) {
+      // Step get user account
+      const foundAccount = await this.accountsRepo.findByUsername(username);
+      if (!foundAccount) {
         apiResponse.unauthorized('Invalid credentials');
         return res.response(apiResponse);
       }
-      const account = serviceResponse.result;
+
+      // Step verify passwords match
       const passwordMatch = await bcrypt.compare(
         password,
-        account.passwordHash
+        foundAccount.passwordHash
       );
       if (!passwordMatch) {
         apiResponse.unauthorized('Invalid credentials');
         return res.response(apiResponse);
       }
 
+      // Step generate access token
       const secret = process.env.JWT_SECRET;
       const expInMins = process.env.TOKEN_EXPIRATION;
       const expiresIn = Math.floor(Date.now() / 1000) + expInMins * 60;
-      const payload = {
-        iat: Date.now(),
-        sub: account.id,
-        exp: expiresIn,
-      };
-      const token = jsonwebtoken.sign(payload, secret);
-      const result = {
+      const token = jsonwebtoken.sign(
+        {
+          iat: Date.now(),
+          sub: foundAccount.id,
+          exp: expiresIn,
+        },
+        secret
+      );
+      apiResponse.ok({
         token,
         expiresIn: `${expInMins} Minutes`,
-      };
-      apiResponse.ok(result);
+      });
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
