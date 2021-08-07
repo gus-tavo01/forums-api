@@ -1,20 +1,30 @@
 require('dotenv').config();
-const mockResponse = require('../helpers/mockResponse');
+const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const AuthController = require('../../../controllers/Auth.Controller');
+// repos
+const AccountsRepository = require('../../../repositories/Accounts.Repository');
+const UsersRepository = require('../../../repositories/Users.Repository');
+
 const LoginsService = require('../../../services/Logins.Service');
 const UsersService = require('../../../services/Users.Service');
+
+jest.mock('../../../repositories/Accounts.Repository');
+jest.mock('../../../repositories/Users.Repository');
 
 jest.mock('../../../services/Logins.Service');
 jest.mock('../../../services/Users.Service');
 
-const { res, clearMockRes } = mockResponse();
+const authController = new AuthController();
+
+afterEach(() => {
+  clearMockRes();
+});
 
 describe('Auth controller login', () => {
   let authController = new AuthController();
 
   afterEach(() => {
-    clearMockRes();
     LoginsService.prototype.findByUsername.mockReset();
   });
 
@@ -60,39 +70,31 @@ describe('Auth controller login', () => {
 });
 
 describe('Auth controller register', () => {
-  let authController = new AuthController();
-
   afterEach(() => {
-    clearMockRes();
-    // mocks reset
+    AccountsRepository.prototype.findByUsername.mockReset();
   });
 
   test('When user data is valid, expect a successful response', async () => {
     // Arrange
+    const userId = 'ertuasd1344235sdf4';
     const username = 'paco.perez01';
-    const email = 'pac.per@gmail.com';
-    const dateOfBirth = Date.now();
-    const password = 'abc123!!';
     const req = getMockReq({
-      body: { username, email, dateOfBirth, password },
+      body: {
+        username,
+        email: 'pac.per@gmail.com',
+        dateOfBirth: '2000-02-16',
+        password: 'password!',
+      },
     });
 
     // mocks
-    const serviceResponse = { fields: [] };
-    const mockLogin = { ...serviceResponse, result: null };
-    LoginsService.prototype.findByUsername = jest.fn(async () => mockLogin);
-    const mockCreateLogin = {
-      ...serviceResponse,
-      result: {
-        username,
-      },
-    };
-    LoginsService.prototype.create = jest.fn(async () => mockCreateLogin);
-    const mockAddUserAccount = {
-      ...serviceResponse,
-      result: { username, email, dateOfBirth },
-    };
-    UsersService.prototype.add = jest.fn(async () => mockAddUserAccount);
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+    UsersRepository.prototype.add = jest.fn(async () => ({
+      id: userId,
+    }));
+    AccountsRepository.prototype.add = jest.fn(async () => ({
+      username,
+    }));
 
     // Act
     const response = await authController.register(req, res);
@@ -100,29 +102,32 @@ describe('Auth controller register', () => {
     // Assert
     expect(response).toMatchObject({
       statusCode: 201,
-      payload: expect.anything(),
+      message: 'Created',
+      payload: username,
+      errorMessage: null,
+      fields: [],
     });
   });
 
   test('When username already exists, expect a 409 http response', async () => {
     // Arrange
-    const username = 'rickyticky';
+    const username = 'rickyTicky';
     const req = getMockReq({
       body: {
         username,
+        password: 'password!',
         email: 'tiktok@gmail.com',
-        dateOfBirth: Date.now(),
+        dateOfBirth: '2010-10-21',
       },
     });
-    const serviceResponse = { fields: [] };
-    const mockLoginUser = {
-      ...serviceResponse,
-      result: {
-        username,
-        email: 'rick.f@gmail.com',
-      },
+
+    const mockAccount = {
+      username,
+      email: 'ricky.ticky@gmail.com',
     };
-    LoginsService.prototype.findByUsername = jest.fn(async () => mockLoginUser);
+    AccountsRepository.prototype.findByUsername = jest.fn(
+      async () => mockAccount
+    );
 
     // Act
     const response = await authController.register(req, res);
@@ -131,10 +136,21 @@ describe('Auth controller register', () => {
     expect(response).toMatchObject({
       statusCode: 409,
       payload: null,
+      message: 'Conflict',
     });
   });
 
-  // TODO -> for each param on body, do a test
+  // test('When username is invalid, expect a 422 response with validation errors', async () => {});
+
+  // test('When email is invalid, expect a 422 response with validation errors', async () => {});
+
+  // test('When password is invalid, expect a 422 response with validation errors', async () => {});
+
+  // test('When dateOfBirth is invalid, expect a 422 response with validation errors', async () => {});
+
+  // test('When create account fails, expect to rollback user profile', async () => {});
+
+  // test('When an exception occurs, expect a 500 server error', async () => {});
 });
 
 describe('Auth controller resetPassword', () => {
