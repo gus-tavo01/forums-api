@@ -4,7 +4,7 @@ const ApiResponse = require('../common/ApiResponse');
 const ForumsRepository = require('../repositories/Forums.Repository');
 // validators
 const validate = require('../common/processors/validate');
-const forumValidator = require('../utilities/validators/forum.validator');
+const postForumValidator = require('../utilities/validators/post.forum.validator');
 
 // api/v0/forums
 class ForumsController {
@@ -57,7 +57,7 @@ class ForumsController {
       };
 
       // Step invoke model validator
-      const { isValid, fields } = await validate(forum, forumValidator);
+      const { isValid, fields } = await validate(forum, postForumValidator);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
