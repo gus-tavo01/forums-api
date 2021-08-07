@@ -2,7 +2,7 @@ const validator = require('validator');
 
 module.exports = async (value, key) => {
   // possible validation errors
-  const notString = `Field '${key}' is not a string`;
+  const notString = `Field '${key}' is not a string, got '${value}'`;
   const isEmpty = `Field '${key}' is empty`;
 
   if (typeof value !== 'string') return notString;
