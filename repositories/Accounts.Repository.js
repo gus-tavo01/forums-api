@@ -11,6 +11,11 @@ class AccountsRepository extends BaseRepository {
     const account = await Account.findOne({ username });
     return accountMapper(account);
   };
+
+  findByUserId = async (userId) => {
+    const account = await Account.findOne({ userId });
+    return accountMapper(account);
+  };
 }
 
 module.exports = AccountsRepository;
