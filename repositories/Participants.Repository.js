@@ -1,13 +1,12 @@
-const Model = require('../models/Participant');
-// mappers
+const Participant = require('../models/Participant');
+const RepositoryBase = require('./Base.Repository');
 const mapParticipants = require('../utilities/mappers/participants');
 const mapParticipant = require('../utilities/mappers/participant');
 
-class ParticipantsRepository {
-  add = async (participant) => {
-    const newParticipant = await new Model(participant).save();
-    return mapParticipant(newParticipant);
-  };
+class ParticipantsRepository extends RepositoryBase {
+  constructor() {
+    super(Participant, mapParticipant);
+  }
 
   find = async (filters) => {
     const filter = {};
@@ -39,23 +38,8 @@ class ParticipantsRepository {
       };
     }
 
-    const participants = await Model.paginate(filter, options);
+    const participants = await Participant.paginate(filter, options);
     return mapParticipants(participants);
-  };
-
-  findById = async (id) => {
-    const participant = await Model.findById(id);
-    return mapParticipant(participant);
-  };
-
-  remove = async (id) => {
-    const participant = await Model.findByIdAndDelete(id);
-    return mapParticipant(participant);
-  };
-
-  modify = async (id, patch) => {
-    const participant = await Model.findByIdAndUpdate(id, patch, { new: true });
-    return mapParticipant(participant);
   };
 }
 

@@ -15,7 +15,7 @@ class BaseRepository {
   };
 
   modify = async (id, patch) => {
-    const entity = await this.model.findByIdAndUpdate(id, patch);
+    const entity = await this.model.findByIdAndUpdate(id, patch, { new: true });
     return this.mapper(entity);
   };
 

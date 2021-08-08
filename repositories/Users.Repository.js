@@ -1,14 +1,12 @@
 const User = require('../models/User');
+const RepositoryBase = require('./Base.Repository');
+const mapProfile = require('../utilities/mappers/profile');
+const mapProfiles = require('../utilities/mappers/profiles');
 
-class UsersRepository {
-  add = async (user) => {
-    const newUser = new User(user);
-    return newUser.save();
-  };
-
-  findById = async (id) => {
-    return User.findById(id);
-  };
+class UsersRepository extends RepositoryBase {
+  constructor() {
+    super(User, mapProfile);
+  }
 
   find = async (filters) => {
     const filter = {};
@@ -30,13 +28,8 @@ class UsersRepository {
       options.limit = filters.pageSize;
     }
 
-    return User.paginate(filter, options);
-  };
-
-  // modify = async () => {}
-
-  remove = async (id) => {
-    return User.findByIdAndRemove(id);
+    const users = User.paginate(filter, options);
+    return mapProfiles(users);
   };
 }
 
