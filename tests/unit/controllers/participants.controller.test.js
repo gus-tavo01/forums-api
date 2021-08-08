@@ -126,3 +126,73 @@ describe('Participants Controller POST', () => {
 
   // test('When modify forum participants count fails, expect to rollback the participant', async () => {});
 });
+
+describe('Participants Controller DELETE', () => {
+  test('When request data is valid, expect participant to be removed from forum', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const userId = '650ee6890a25e341708f1505';
+    const username = 'unit.user';
+    const req = getMockReq({
+      params: { userId, forumId },
+      user: {
+        role: 'Operator',
+        username: 'Unit.Test',
+      },
+    });
+
+    // mocks
+    AccountsRepository.prototype.findById = jest.fn(async () => ({
+      userId,
+      username,
+      isActive: true,
+      role: 'Administrator',
+      avatar: 'images/butt.jpg',
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: true,
+      participants: 25,
+    }));
+    ParticipantsRepository.prototype.remove = jest.fn(async () => ({
+      username,
+      userId,
+    }));
+    ForumsRepository.prototype.modify = jest.fn(async () => ({
+      id: forumId,
+      isActive: true,
+    }));
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+      payload: username,
+    });
+  });
+
+  // test('When forumId is not valid, expect a validation error', async () => {});
+
+  // test('When userId is not valid, expect a validation error', async () => {});
+
+  // test('When requestor role is not valid, expect a 403 response', async () => {});
+
+  // test('When source participant is not found, expect a 404 response', async () => {});
+
+  // test('When source participant is inactive, expect a 422 response', async () => {});
+
+  // test('When target forum is inactive, expect a 422 response', async () => {});
+
+  // test('When target role is operator, expect a 403 response', async () => {});
+
+  // test('When target forum is not found, expect a 422 response', async () => {});
+
+  // test('When the participant is not removed, expect a 422 response', async () => {});
+
+  // test('When target forum is not updated, expect process to be rollback', async () => {});
+});
