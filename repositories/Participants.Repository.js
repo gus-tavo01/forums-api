@@ -41,6 +41,11 @@ class ParticipantsRepository extends RepositoryBase {
     const participants = await Participant.paginate(filter, options);
     return mapParticipants(participants);
   };
+
+  findByUserAndForum = async (userId, forumId) => {
+    const participant = await this.model.findOne({ userId, forumId });
+    return mapParticipant(participant);
+  };
 }
 
 module.exports = ParticipantsRepository;
