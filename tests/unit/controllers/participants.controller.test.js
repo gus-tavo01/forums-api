@@ -176,9 +176,58 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
-  // test('When forumId is not valid, expect a validation error', async () => {});
+  test('When forumId is not valid, expect a validation error', async () => {
+    // Arrange
+    const forumId = 18;
+    const userId = '650ee6890a25e341708f1505';
+    const req = getMockReq({
+      params: { userId, forumId },
+      user: {
+        role: 'Operator',
+        username: 'Unit.Test',
+      },
+    });
 
-  // test('When userId is not valid, expect a validation error', async () => {});
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      fields: [
+        `Field 'forumId' expected to be nonEmptyString. Got: ${forumId}`,
+        `Field 'forumId' expected to be GUID. Got: ${forumId}`,
+      ],
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+      payload: null,
+    });
+  });
+
+  test('When userId is not valid, expect a validation error', async () => {
+    // Arrange
+    const forumId = '650ee6890a25e341708f1505';
+    const userId = '18mil';
+    const req = getMockReq({
+      params: { userId, forumId },
+      user: {
+        role: 'Operator',
+        username: 'Unit.Test',
+      },
+    });
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      fields: [`Field 'userId' expected to be GUID. Got: ${userId}`],
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+      payload: null,
+    });
+  });
 
   // test('When requestor role is not valid, expect a 403 response', async () => {});
 
