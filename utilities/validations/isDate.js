@@ -1,6 +1,5 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = (value, key, opts) => {
-  const validationError = `Key '${key}' is not a valid date, got '${value}'`;
-  if (!validator.isDate(value, opts)) return validationError;
-};
+module.exports = (value, key, opts) =>
+  executeValidator(value, key, 'date', () => !validator.isDate(value, opts));

@@ -1,6 +1,5 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = async (value, key) => {
-  const validationError = `Field '${key}' is not a valid ID, got '${value}'`;
-  if (validator.isMongoId(value)) return validationError;
-};
+module.exports = async (value, key) =>
+  executeValidator(value, key, 'GUID', () => !validator.isMongoId(value));

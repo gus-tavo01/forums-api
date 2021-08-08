@@ -1,10 +1,7 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = async (value, key) => {
-  // possible validation errors
-  const notString = `Field '${key}' is not a string, got '${value}'`;
-  const isEmpty = `Field '${key}' is empty`;
-
-  if (typeof value !== 'string') return notString;
-  if (validator.isEmpty(value)) return isEmpty;
-};
+module.exports = async (value, key) =>
+  executeValidator(value, key, 'nonEmptyString', () =>
+    validator.isEmpty(value)
+  );

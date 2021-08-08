@@ -1,6 +1,10 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = (value, key, opts) => {
-  const validationError = `Key '${key}' is not a number, got '${value}'`;
-  if (validator.isNumeric(value, opts)) return validationError;
-};
+module.exports = (value, key, opts) =>
+  executeValidator(
+    value,
+    key,
+    'numeric',
+    () => !validator.isNumeric(value, opts)
+  );

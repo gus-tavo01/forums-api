@@ -1,4 +1,4 @@
-module.exports = async (value, key) => {
-  const validationError = `Field '${key}' is not a valid boolean, got '${value}'`;
-  if (typeof value !== 'boolean') return validationError;
-};
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
+
+module.exports = (value, key) =>
+  executeValidator(value, key, 'boolean', () => typeof value !== 'boolean');

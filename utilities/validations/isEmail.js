@@ -1,6 +1,5 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = (value, key) => {
-  const validationError = `Key '${key}' is not a valid email, got '${value}'`;
-  if (!validator.isEmail(value)) return validationError;
-};
+module.exports = (value, key) =>
+  executeValidator(value, key, 'email', () => !validator.isEmail(value));

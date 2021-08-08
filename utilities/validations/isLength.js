@@ -1,6 +1,11 @@
 const validator = require('validator');
+const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
 module.exports = (value, key, opts) => {
-  const validationError = `Key '${key}' does not have the required length`;
-  if (!validator.isLength(value, opts)) return validationError;
+  executeValidator(
+    value,
+    key,
+    `length ${JSON.stringify(opts)}`,
+    () => !validator.isLength(value, opts)
+  );
 };
