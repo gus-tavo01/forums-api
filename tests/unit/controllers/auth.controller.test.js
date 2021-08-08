@@ -6,13 +6,11 @@ const AuthController = require('../../../controllers/Auth.Controller');
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
 const UsersRepository = require('../../../repositories/Users.Repository');
 
-const LoginsService = require('../../../services/Logins.Service');
 const UsersService = require('../../../services/Users.Service');
 
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
 
-jest.mock('../../../services/Logins.Service');
 jest.mock('../../../services/Users.Service');
 
 const authController = new AuthController();
@@ -198,40 +196,158 @@ describe('Auth controller register', () => {
 });
 
 describe('Auth controller resetPassword', () => {
-  const authController = new AuthController();
-
   test('When password is provided, expect to be successful', async () => {
     // Arrange
     const username = 'r.joemon001';
-    const mockUser = { username };
+    const accountId = '610ee6890a25e341708f1805';
+    const profileId = '610ee6890a25e341708f1703';
     const req = getMockReq({
       body: { password: '5up3r53cur3' },
-      user: mockUser,
+      user: { username, id: accountId, userId: profileId },
+      params: { userId: profileId },
     });
 
-    // mock calls
-    const serviceResponse = { fields: [] };
-    const mockGetUser = {
-      ...serviceResponse,
-      result: { username, id: '1245543355aasd' },
-    };
-    UsersService.prototype.getById = jest.fn(async () => mockGetUser);
-    const mockUpdateUser = {
-      ...serviceResponse,
-      result: {
-        username,
-      },
-    };
-    LoginsService.prototype.update = jest.fn(async () => mockUpdateUser);
+    // mocks
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      username,
+      id: profileId,
+    }));
+    AccountsRepository.prototype.modify = jest.fn(async () => ({
+      id: accountId,
+      username,
+      userId: profileId,
+    }));
 
     // Act
     const response = await authController.resetPassword(req, res);
 
     // Assert
-    expect(response).toMatchObject({ statusCode: 200 });
+    expect(response).toMatchObject({
+      statusCode: 200,
+      message: 'Ok',
+      fields: [],
+      payload: username,
+      errorMessage: null,
+    });
   });
 
-  // test('When user in token is not the one in req params, expect a forbidden response');
-  // test('When source user is not found, expect a 422 response');
-  // test('When provided password is invalid, expect a 400 response');
+  test('When request is not self, expect a 403 response', async () => {
+    // Arrange
+    const username = 'rManuel';
+    const profileId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      body: { password: '5up3r53cur3' },
+      user: {
+        id: '610ee6890a25e341708f1984',
+        username: 'testDev001',
+        userId: '610ee6890a25e341708f1784',
+      },
+      params: { userId: profileId },
+    });
+
+    // mocks
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      username,
+      id: profileId,
+    }));
+
+    // Act
+    const response = await authController.resetPassword(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 403,
+      message: 'Forbidden',
+      fields: [],
+      payload: null,
+      errorMessage: 'Cannot update another users password',
+    });
+  });
+
+  test('When source user is not found, expect a 404 response', async () => {
+    // Arrange
+    const profileId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      body: { password: '5up3r53cur3' },
+      user: {
+        id: '610ee6890a25e341708f1984',
+        username: 'testDev001',
+        userId: profileId,
+      },
+      params: { userId: profileId },
+    });
+
+    // mocks
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await authController.resetPassword(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      message: 'Not_Found',
+      fields: [],
+      payload: null,
+      errorMessage: 'User is not found',
+    });
+  });
+
+  test('When provided password is invalid, expect a 400 response', async () => {
+    // Arrange
+    const password = [];
+    const profileId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      body: { password },
+      user: {
+        id: '610ee6890a25e341708f1984',
+        username: 'testDev001',
+        userId: '610ee6890a25e341708f1784',
+      },
+      params: { userId: profileId },
+    });
+
+    // Act
+    const response = await authController.resetPassword(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      fields: [
+        `Field 'password' expected to be nonEmptyString. Got: ${password}`,
+      ],
+      payload: null,
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When provided userId is invalid, expect a 400 response', async () => {
+    // Arrange
+    const userId = 6101703;
+    const req = getMockReq({
+      body: { password: 'password!' },
+      user: {
+        id: '610ee6890a25e341708f1984',
+        username: 'testDev001',
+        userId: '610ee6890a25e341708f1784',
+      },
+      params: { userId },
+    });
+
+    // Act
+    const response = await authController.resetPassword(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      fields: [
+        `Field 'userId' expected to be nonEmptyString. Got: ${userId}`,
+        `Field 'userId' expected to be GUID. Got: ${userId}`,
+      ],
+      payload: null,
+      errorMessage: 'Validation errors',
+    });
+  });
 });
