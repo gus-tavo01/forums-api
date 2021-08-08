@@ -90,9 +90,10 @@ describe('Participants Controller POST', () => {
 
   test('When forumId is invalid, expect a 400 response with validation errors', async () => {
     // Arrange
+    const forumId = 550;
     const req = getMockReq({
       body: { username: 'dev.user', role: 'Operator' },
-      params: { forumId: 550 },
+      params: { forumId },
       user: { role: 'Administrator', username: 'unit.test' },
     });
 
@@ -106,8 +107,8 @@ describe('Participants Controller POST', () => {
       message: 'Bad_Request',
       payload: null,
       fields: [
-        `Field 'forumId' expected to be nonEmptyString. Got: null`,
-        `Field 'forumId' expected to be GUID. Got: null`,
+        `Field 'forumId' expected to be nonEmptyString. Got: ${forumId}`,
+        `Field 'forumId' expected to be GUID. Got: ${forumId}`,
       ],
     });
   });
