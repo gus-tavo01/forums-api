@@ -6,11 +6,12 @@ const ApiResponse = require('../common/ApiResponse');
 // repositories
 const AccountsRepository = require('../repositories/Accounts.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
-
-const LoginsService = require('../services/Logins.Service');
-const UsersService = require('../services/Users.Service');
 // validators
-const validate = require('../common/processors/validate');
+const validations = require('../utilities/validations');
+const {
+  validate,
+  executeValidations,
+} = require('../common/processors/errorManager');
 const postAccountValidator = require('../utilities/validators/post.account.validator');
 const loginValidator = require('../utilities/validators/login.validator');
 
@@ -18,9 +19,8 @@ const loginValidator = require('../utilities/validators/login.validator');
 class AuthController {
   constructor() {
     this.router = Router();
-    this.loginsService = new LoginsService();
-    this.usersService = new UsersService();
 
+    // unit of work
     this.accountsRepo = new AccountsRepository();
     this.usersRepo = new UsersRepository();
 
@@ -143,30 +143,32 @@ class AuthController {
     const apiResponse = new ApiResponse();
     try {
       // logged in user
-      const { user } = req;
+      const { username: requesterUsername, id: requestorUserId } = req.user;
       const { userId } = req.params;
       const { password } = req.body;
 
-      // TODO:
-      // validate password criteria
+      // Step validate request data
+      const { isValid, fields } = await executeValidations([
+        validations.isEmpty(password, 'password'),
+        validations.isEmpty(userId, 'userId'),
+        validations.isMongoId(userId, 'userId'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step get user
-      const getUserResponse = await this.usersService.getById(userId);
-      if (getUserResponse.fields.length) {
-        apiResponse.badRequest('Invalid user id provided');
+      const foundUserProfile = await this.usersRepo.findById(userId);
+      if (!foundUserProfile) {
+        apiResponse.notFound('User is not found');
         return res.response(apiResponse);
       }
-      if (!getUserResponse.result) {
-        apiResponse.notFound('User is not found :o');
-        return res.response(apiResponse);
-      }
-      const { username } = getUserResponse.result;
+      const { username: targetUsername } = foundUserProfile;
 
-      // Step validate it is a self pwd reset
-      if (user.username !== username) {
-        apiResponse.forbidden(
-          'Current user does not have permissions to perform this action'
-        );
+      // Step validate if is self pwd reset
+      if (requesterUsername !== targetUsername) {
+        apiResponse.forbidden('Cannot update another users password');
         return res.response(apiResponse);
       }
 
@@ -175,22 +177,17 @@ class AuthController {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Step update account password
-      const updatePwd = { passwordHash };
-      const updatePwdResponse = await this.loginsService.update(
-        user.id,
-        updatePwd
-      );
-      if (updatePwdResponse.fields.length) {
-        apiResponse.badRequest('Invalid password bro');
-        return res.response(apiResponse);
-      }
-      if (!updatePwdResponse.result) {
+      const updatedAccount = await this.accountsRepo.modify(requestorUserId, {
+        passwordHash,
+      });
+      if (!updatedAccount) {
+        // Step validate update process was successful
         apiResponse.unprocessableEntity(
           'Cannot update the password, try again later'
         );
         return res.response(apiResponse);
       }
-      apiResponse.ok('Password has been reset successfully');
+      apiResponse.ok(targetUsername);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
