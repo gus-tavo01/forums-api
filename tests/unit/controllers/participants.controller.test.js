@@ -64,11 +64,55 @@ describe('Participants Controller POST', () => {
     });
   });
 
-  // test('When request body is invalid, expect a 400 response with validation errors', async () => {});
+  test('When request body is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const req = getMockReq({
+      body: { username: null, role: true },
+      params: { forumId: '615ee6890a25e341708f4706' },
+      user: { role: 'Administrator', username: 'unit.test' },
+    });
 
-  // test('When forumId is invalid, expect a 400 response with validation errors', async () => {});
+    // Act
+    const response = await participantsController.post(req, res);
 
-  // test('When requestor authenticated, expect a 403 response', async () => {});
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+      payload: null,
+      fields: [
+        `Field 'username' expected to be nonEmptyString. Got: null`,
+        `Field 'role' expected to be nonEmptyString. Got: true`,
+      ],
+    });
+  });
+
+  test('When forumId is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const req = getMockReq({
+      body: { username: 'dev.user', role: 'Operator' },
+      params: { forumId: 550 },
+      user: { role: 'Administrator', username: 'unit.test' },
+    });
+
+    // Act
+    const response = await participantsController.post(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+      payload: null,
+      fields: [
+        `Field 'forumId' expected to be nonEmptyString. Got: null`,
+        `Field 'forumId' expected to be GUID. Got: null`,
+      ],
+    });
+  });
+
+  // test('When requestor is not authenticated, expect a 403 response', async () => {});
 
   // test('When requestor role is unauthorized, expect a 403 response', async () => {});
 
@@ -80,5 +124,5 @@ describe('Participants Controller POST', () => {
 
   // test('When target forum is inactive, expect a 422 response', async () => {});
 
-  // test('When increase forum participants count fails, expect to rollback the participant', async () => {});
+  // test('When modify forum participants count fails, expect to rollback the participant', async () => {});
 });
