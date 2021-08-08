@@ -3,7 +3,7 @@ const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
 const ForumsRepository = require('../repositories/Forums.Repository');
 // validators
-const validate = require('../common/processors/validate');
+const { validate } = require('../common/processors/errorManager');
 const postForumValidator = require('../utilities/validators/post.forum.validator');
 
 // api/v0/forums
@@ -36,6 +36,10 @@ class ForumsController {
         public: true,
       };
 
+      // Step validate query params
+      // TODO
+
+      // Step get forums
       const response = await this.forumsRepo.find(filters);
       apiResponse.ok(response);
     } catch (error) {
@@ -49,22 +53,21 @@ class ForumsController {
     try {
       const { user } = req;
       const { topic, description, isPrivate } = req.body;
-      const forum = {
-        topic,
-        description,
-        author: user.username,
-        isPrivate,
-      };
 
       // Step invoke model validator
-      const { isValid, fields } = await validate(forum, postForumValidator);
+      const { isValid, fields } = await validate(req.body, postForumValidator);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
       }
 
       // Step create forum
-      const response = await this.forumsRepo.add(forum);
+      const response = await this.forumsRepo.add({
+        topic,
+        description,
+        author: user.username,
+        isPrivate,
+      });
       if (!response) {
         apiResponse.unprocessableEntity(
           'Forum cannot be created, try again later'
