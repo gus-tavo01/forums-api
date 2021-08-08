@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { res, clearMockRes } = require('../helpers/mockResponse')();
+const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
@@ -9,15 +9,9 @@ jest.mock('../../../repositories/Forums.Repository');
 
 const forumsController = new ForumsController();
 
-//#region Test Suite Setup
-beforeAll(() => {
-  jest.setTimeout(5 * 60 * 1000);
-});
-
 afterEach(() => {
   clearMockRes();
 });
-//#endregion Test Suite Setup
 
 describe('Forums Controller POST', () => {
   afterEach(() => {
@@ -75,9 +69,9 @@ describe('Forums Controller POST', () => {
     const expectedResponse = {
       statusCode: 400,
       fields: [
-        `Field 'topic' is not a string`,
-        `Field 'description' is not a string`,
-        `Field 'isPrivate' is not a valid boolean`,
+        `Field 'topic' expected to be nonEmptyString. Got: ${forumData.topic}`,
+        `Field 'description' expected to be nonEmptyString. Got: ${forumData.description}`,
+        `Field 'isPrivate' expected to be boolean. Got: ${forumData.isPrivate}`,
       ],
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
@@ -89,6 +83,29 @@ describe('Forums Controller POST', () => {
 
     // Assert
     expect(response).toMatchObject(expectedResponse);
+  });
+
+  test('When user is not authorized, expect response to be 401', async () => {
+    // Arrange
+    const req = getMockReq({
+      body: {
+        topic: 'Gym',
+        description: 'Is cool',
+        author: 'Me :p',
+        isActive: false,
+      },
+    });
+
+    // Act
+    const response = await forumsController.post(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 401,
+      errorMessage: 'Authorization required',
+      message: 'Unauthorized',
+      fields: [],
+    });
   });
 
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {

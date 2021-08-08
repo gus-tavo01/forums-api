@@ -54,6 +54,12 @@ class ForumsController {
       const { user } = req;
       const { topic, description, isPrivate } = req.body;
 
+      // Step validate user is auth
+      if (!user) {
+        apiResponse.unauthorized('Authorization required');
+        return res.response(apiResponse);
+      }
+
       // Step invoke model validator
       const { isValid, fields } = await validate(req.body, postForumValidator);
       if (!isValid) {
