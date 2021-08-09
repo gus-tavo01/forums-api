@@ -20,7 +20,7 @@ afterEach(() => {
 describe('Participants Controller POST', () => {
   test('When participant data is valid, expect a successful response', async () => {
     // Arrange
-    const participantData = { username: 'ticky.perez', role: 'participant' };
+    const participantData = { username: 'ticky.perez', role: 'Participant' };
     const requestor = { username: 'testerDeveloper001', role: 'Operator' };
     const forumId = '610ee6890a25e341708f1706';
     const participantUserId = '610ee6890a25e341708f1703';
@@ -31,10 +31,19 @@ describe('Participants Controller POST', () => {
     });
 
     // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      id: '615ee6890a25e341408f1503',
+      username: requestor.username,
+      role: requestor.role,
+    });
     AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
       id: participantUserId,
       isActive: true,
     }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
     ForumsRepository.prototype.findById = jest.fn(async () => ({
       id: forumId,
       isActive: true,
@@ -117,15 +126,29 @@ describe('Participants Controller POST', () => {
 
   // test('When requestor role is unauthorized, expect a 403 response', async () => {});
 
+  // test('When requestor is not a forum member, expect a 403 response', async () => {});
+
   // test('When source account is not found, expect a 422 response', async () => {});
 
   // test('When source account is inactive, expect a 422 response', async () => {});
+
+  // test('When source user role is invalid, expect a 422 response', async () => {});
+
+  // test('When source user is already a forum member, expect a 409 response', async () => {});
+
+  // test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {});
+
+  // test('When request is an operator transfer and request is valid, expect to be success', async () => {});
+
+  // test('When update current operator fails, expect a 422 response', async () => {});
 
   // test('When target forum is not found, expect a 422 response', async () => {});
 
   // test('When target forum is inactive, expect a 422 response', async () => {});
 
-  // test('When modify forum participants count fails, expect to rollback the participant', async () => {});
+  // test('When create participant process fails, expect a 422 response and rollback', async () => {});
+
+  // test('When modify forum participants count fails, expect the process to be rollbacked', async () => {});
 });
 
 describe('Participants Controller DELETE', () => {
@@ -137,19 +160,29 @@ describe('Participants Controller DELETE', () => {
     const req = getMockReq({
       params: { userId, forumId },
       user: {
-        role: 'Operator',
         username: 'Unit.Test',
       },
     });
 
     // mocks
-    AccountsRepository.prototype.findById = jest.fn(async () => ({
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: 'Operator',
+    });
+    AccountsRepository.prototype.findByUserId = jest.fn(async () => ({
       userId,
       username,
       isActive: true,
       role: 'Administrator',
       avatar: 'images/butt.jpg',
     }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      id: '650ee6890a25e341708f1606',
+      username,
+      role: 'Participant',
+      avatar: null,
+      userId,
+    });
     ForumsRepository.prototype.findById = jest.fn(async () => ({
       id: forumId,
       isActive: true,
@@ -157,11 +190,9 @@ describe('Participants Controller DELETE', () => {
     }));
     ParticipantsRepository.prototype.remove = jest.fn(async () => ({
       username,
-      userId,
     }));
     ForumsRepository.prototype.modify = jest.fn(async () => ({
       id: forumId,
-      isActive: true,
     }));
 
     // Act
