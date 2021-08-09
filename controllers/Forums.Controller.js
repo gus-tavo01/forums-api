@@ -1,7 +1,10 @@
 const { Router } = require('express');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
+const Roles = require('../common/constants/roles');
+// repositories
 const ForumsRepository = require('../repositories/Forums.Repository');
+const ParticipantsRepository = require('../repositories/Participants.Repository');
 // validators
 const { validate } = require('../common/processors/errorManager');
 const postForumValidator = require('../utilities/validators/post.forum.validator');
@@ -11,6 +14,7 @@ class ForumsController {
   constructor() {
     this.router = Router();
     this.forumsRepo = new ForumsRepository();
+    this.participantsRepo = new ParticipantsRepository();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
@@ -68,19 +72,35 @@ class ForumsController {
       }
 
       // Step create forum
-      const response = await this.forumsRepo.add({
+      const createdForum = await this.forumsRepo.add({
         topic,
         description,
         author: user.username,
         isPrivate,
+        participants: 1,
       });
-      if (!response) {
+      if (!createdForum) {
         apiResponse.unprocessableEntity(
           'Forum cannot be created, try again later'
         );
         return res.response(apiResponse);
       }
-      apiResponse.created(response);
+
+      // Step add owner as forum Operator
+      const participant = await this.participantsRepo.add({
+        username: user.username,
+        role: Roles.operator,
+        forumId: createdForum.id,
+        userId: user.userId,
+        avatar: user.avatar,
+      });
+      if (!participant) {
+        apiResponse.unprocessableEntity('Cannot add participant on forum');
+        // Step rollback forum creation
+        await this.forumsRepo.remove(createdForum.id);
+        return res.response(apiResponse);
+      }
+      apiResponse.created(createdForum);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }

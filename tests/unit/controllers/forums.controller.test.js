@@ -3,9 +3,11 @@ const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
+const ParticipantsRepository = require('../../../repositories/Participants.Repository');
 
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
+jest.mock('../../../repositories/Participants.Repository');
 
 const forumsController = new ForumsController();
 
@@ -22,6 +24,7 @@ describe('Forums Controller POST', () => {
 
   test('When provided forum data is valid, expect response to be success', async () => {
     // Arrange
+    const username = 'r.janvan001';
     const forumData = {
       topic: 'new name or topic',
       description: 'Changes on arch',
@@ -31,7 +34,7 @@ describe('Forums Controller POST', () => {
       body: {
         ...forumData,
       },
-      user: { username: 'r.janvan001' },
+      user: { username },
     });
 
     const mockAddForum = {
@@ -41,6 +44,7 @@ describe('Forums Controller POST', () => {
       ...forumData,
     };
     ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
+    ParticipantsRepository.prototype.add = jest.fn(async () => ({ username }));
 
     const expectedPayload = {
       ...mockAddForum,
@@ -107,6 +111,8 @@ describe('Forums Controller POST', () => {
       fields: [],
     });
   });
+
+  // test('When creating participant fails, expect forum creation to rollback', async () => {});
 
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {
     // Arrange
