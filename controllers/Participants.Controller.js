@@ -24,7 +24,7 @@ class ParticipantsController {
     this.accountsRepo = new AccountsRepository();
     this.participantsRepo = new ParticipantsRepository();
 
-    this.router.delete('/:id', useJwtAuth, this.delete);
+    this.router.delete('/:userId', useJwtAuth, this.delete);
     this.router.post('/', useJwtAuth, this.post);
   }
 
@@ -37,23 +37,6 @@ class ParticipantsController {
         params: { forumId },
       } = req;
 
-      // Step validate requestor role is authorized
-      const isAuthorized = [Roles.operator, Roles.administrator].some(
-        (r) => r === requestorUser.role
-      );
-      if (!isAuthorized) {
-        apiResponse.forbidden(
-          'Requestor role does not have sufficient permissions'
-        );
-        return res.response(apiResponse);
-      }
-
-      // Step validate target role
-      // when target role is Operator
-      // TODO ->
-      // validate requester role is Operator
-      // replace current Operator role by Administrator
-
       // Step validate request data
       const [
         { isValid: isModelValid, fields: modelFields },
@@ -65,7 +48,6 @@ class ParticipantsController {
           validations.isMongoId(forumId, 'forumId'),
         ]),
       ]);
-
       if (!isModelValid || !paramsAreValid) {
         apiResponse.badRequest('Validation errors', [
           ...paramsFields,
@@ -74,12 +56,68 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step get requestor role
+      const requestorParticipant = await this.participantsRepo.findByUserAndForum(
+        requestorUser.userId,
+        forumId
+      );
+      if (!requestorParticipant) {
+        apiResponse.forbidden(
+          `${requestorUser.username} is not a member of this forum`
+        );
+        return res.response(apiResponse);
+      }
+
+      // Step validate requestor role is authorized
+      const isAuthorized = [Roles.operator, Roles.administrator].some(
+        (r) => r === requestorParticipant.role
+      );
+      if (!isAuthorized) {
+        apiResponse.forbidden(
+          `${requestorUser.username} does not have the required role permissions`
+        );
+        return res.response(apiResponse);
+      }
+
+      // Step validate target role
+      const forumRoles = Object.keys(Roles).map((k) => Roles[k]);
+      const targetRoleExist = forumRoles.some((r) => r === body.role);
+      if (!targetRoleExist) {
+        apiResponse.unprocessableEntity(
+          `Forum participant role: '${body.role}' is incorrect`
+        );
+        return res.response(apiResponse);
+      }
+
+      // Step verify an operator can be transfered
+      if (
+        body.role === Roles.operator &&
+        requestorParticipant.role !== Roles.operator
+      ) {
+        apiResponse.forbidden(
+          `${requestorUser.username} does not have the required role permissions`
+        );
+        return res.response(apiResponse);
+      }
+
       // Step get source participant account
-      const sourceParticipant = await this.accountsRepo.findByUsername(
+      const sourceUserAccount = await this.accountsRepo.findByUsername(
         body.username
       );
-      if (!sourceParticipant || !sourceParticipant.isActive) {
+      if (!sourceUserAccount || !sourceUserAccount.isActive) {
         apiResponse.unprocessableEntity('Invalid participant');
+        return res.response(apiResponse);
+      }
+
+      // Step validate source participant is not a member already
+      const sourceParticipant = await this.participantsRepo.findByUserAndForum(
+        sourceUserAccount.userId,
+        forumId
+      );
+      if (sourceParticipant) {
+        apiResponse.conflict(
+          `${body.username} is a member of this forum already`
+        );
         return res.response(apiResponse);
       }
 
@@ -90,18 +128,36 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step replace current operator by the provided one
+      if (body.role === Roles.operator) {
+        const updateRequestor = await this.participantsRepo.modify(
+          requestorParticipant.id,
+          {
+            role: Roles.administrator,
+          }
+        );
+        if (!updateRequestor) {
+          apiResponse.unprocessableEntity('Cannot modify current operator');
+          return res.response(apiResponse);
+        }
+      }
+
       // Step create forum participant
       const addedParticipant = await this.participantsRepo.add({
         username: body.username,
         role: body.role,
         forumId,
-        userId: sourceParticipant.userId,
-        avatar: sourceParticipant.avatar,
+        userId: sourceUserAccount.userId,
+        avatar: sourceUserAccount.avatar,
       });
       if (!addedParticipant) {
         apiResponse.unprocessableEntity(
           'Cannot add the participant, please try again later'
         );
+        // Step rollback update current Operator
+        await this.participantsRepo.modify(requestorParticipant.id, {
+          role: Roles.operator,
+        });
         res.response(apiResponse);
       }
 
@@ -110,11 +166,15 @@ class ParticipantsController {
       const forumUpdate = { participants: newCount };
       const updatedForum = await this.forumsRepo.modify(forumId, forumUpdate);
       if (!updatedForum) {
-        // Step rollback participant creation
-        await this.participantsRepo.remove(addedParticipant.id);
         apiResponse.unprocessableEntity(
           'Cannot update the forum, please try again later'
         );
+        // Step rollback participant creation
+        await this.participantsRepo.remove(addedParticipant.id);
+        // Step rollback update current Operator
+        await this.participantsRepo.modify(requestorParticipant.id, {
+          role: Roles.operator,
+        });
         return res.response(apiResponse);
       }
       apiResponse.ok(addedParticipant);
@@ -132,17 +192,6 @@ class ParticipantsController {
         params: { forumId, userId },
       } = req;
 
-      // Step validate requestor role is authorized
-      const isAuthorized = [Roles.operator, Roles.administrator].some(
-        (r) => r === requestorUser.role
-      );
-      if (!isAuthorized) {
-        apiResponse.forbidden(
-          'Requestor role does not have sufficient permissions'
-        );
-        return res.response(apiResponse);
-      }
-
       // Step validate request data
       const { isValid, fields } = await executeValidations([
         validations.isEmpty(forumId, 'forumId'),
@@ -155,14 +204,43 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
-      // Step get source participant account
-      const sourceParticipant = await this.accountsRepo.findById(userId);
-      if (!sourceParticipant) {
-        apiResponse.notFound('Participant not found');
+      // Step get requestor role
+      const requestorParticipant = await this.participantsRepo.findByUserAndForum(
+        requestorUser.userId,
+        forumId
+      );
+      if (!requestorParticipant) {
+        apiResponse.forbidden('Requestor is not a member of this forum');
         return res.response(apiResponse);
       }
-      if (!sourceParticipant.isActive) {
+
+      // Step validate requestor role is authorized
+      const isAuthorized = [Roles.operator, Roles.administrator].some(
+        (r) => r === requestorParticipant.role
+      );
+      if (!isAuthorized) {
+        apiResponse.forbidden(
+          'Requestor role does not have sufficient permissions'
+        );
+        return res.response(apiResponse);
+      }
+
+      // Step get source account
+      const sourceUserAccount = await this.accountsRepo.findByUserId(userId);
+      if (!sourceUserAccount || !sourceUserAccount.isActive) {
         apiResponse.unprocessableEntity('Invalid participant');
+        return res.response(apiResponse);
+      }
+
+      // Step get source participant
+      const sourceParticipant = await this.participantsRepo.findByUserAndForum(
+        userId,
+        forumId
+      );
+      if (!sourceParticipant) {
+        apiResponse.notFound(
+          `${sourceUserAccount.username} is not member of this forum`
+        );
         return res.response(apiResponse);
       }
 
@@ -180,10 +258,12 @@ class ParticipantsController {
       }
 
       // Step remove forum participant
-      const removedParticipant = await this.participantsRepo.remove(userId);
+      const removedParticipant = await this.participantsRepo.remove(
+        sourceParticipant.id
+      );
       if (!removedParticipant) {
         apiResponse.unprocessableEntity(
-          'Cannot add the participant, please try again later'
+          'Cannot remove the participant, please try again later'
         );
         return res.response(apiResponse);
       }
