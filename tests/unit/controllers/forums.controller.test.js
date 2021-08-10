@@ -112,7 +112,43 @@ describe('Forums Controller POST', () => {
     });
   });
 
-  // test('When creating participant fails, expect forum creation to rollback', async () => {});
+  test('When creating the forum participant fails, expect forum creation to rollback', async () => {
+    // Arrange
+    const username = 'r.janvan001';
+    const forumData = {
+      topic: 'new forum topic',
+      description: 'Additional test scenario for this forum data',
+      isPrivate: true,
+    };
+    const req = getMockReq({
+      body: {
+        ...forumData,
+      },
+      user: { username },
+    });
+
+    const mockAddForum = {
+      id: 'someRandomId019475',
+      createDate: Date.now(),
+      participants: [],
+      ...forumData,
+    };
+    ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
+    ParticipantsRepository.prototype.add = jest.fn(async () => null);
+    ForumsRepository.prototype.remove = jest.fn(async () => mockAddForum);
+
+    // Act
+    const response = await forumsController.post(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      fields: [],
+      errorMessage: 'Cannot add participant on forum',
+      message: 'Unprocessable_Entity',
+    });
+  });
 
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {
     // Arrange
