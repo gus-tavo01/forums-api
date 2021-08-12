@@ -5,6 +5,6 @@ module.exports = (value, key, opts) =>
   executeValidator(
     value,
     key,
-    'numeric',
+    'Numeric',
     () => !validator.isNumeric(value.toString(), opts)
   );
