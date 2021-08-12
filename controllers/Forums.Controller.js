@@ -6,7 +6,11 @@ const Roles = require('../common/constants/roles');
 const ForumsRepository = require('../repositories/Forums.Repository');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
 // validators
-const { validate } = require('../common/processors/errorManager');
+const validations = require('../utilities/validations');
+const {
+  validate,
+  executeValidations,
+} = require('../common/processors/errorManager');
 const postForumValidator = require('../utilities/validators/post.forum.validator');
 
 // api/v0/forums
@@ -41,7 +45,22 @@ class ForumsController {
       };
 
       // Step validate query params
-      // TODO
+      const { isValid, fields } = await executeValidations([
+        validations.isBool(filters.isActive, 'isActive'),
+        validations.isNumeric(filters.page, 'page'),
+        validations.isNumeric(filters.pageSize, 'pageSize'),
+        // TODO -> enable this validations when they are implemented
+        // validations.isOptional(filters.author, 'author'),
+        // validations.isEmpty(filters.author, 'author'),
+        // validations.isOptional(filters.topic, 'topic'),
+        // validations.isEmpty(filters.topic, 'topic'),
+        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
+        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step get forums
       const response = await this.forumsRepo.find(filters);
