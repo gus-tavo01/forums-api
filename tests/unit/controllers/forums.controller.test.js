@@ -182,3 +182,109 @@ describe('Forums Controller POST', () => {
     expect(response).toMatchObject(expectedResponse);
   });
 });
+
+describe('Forums Controller GET by filters', () => {
+  afterEach(() => {
+    ForumsRepository.prototype.find.mockReset();
+  });
+
+  test('When valid filters are provided, expect response to be successful', async () => {
+    // Arrange
+    const req = getMockReq({
+      query: {
+        page: 1,
+        pageSize: 15,
+      },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+    });
+  });
+
+  test('When page param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const page = 'TwentyOne';
+    const req = getMockReq({
+      query: { page },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'page' expected to be Numeric. Got: ${page}`],
+    });
+  });
+
+  test('When pageSize param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const pageSize = 'TwentyTwo';
+    const req = getMockReq({
+      query: { pageSize },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'pageSize' expected to be Numeric. Got: ${pageSize}`],
+    });
+  });
+
+  test('When isActive param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const isActive = 'Yes, please';
+    const req = getMockReq({
+      query: { isActive },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'isActive' expected to be Boolean. Got: ${isActive}`],
+    });
+  });
+
+  // TODO -> pending test scenarios
+  // until validator V2 is developed and implemented.
+  // ('When author param is invalid, expect a validation error on response');
+  // ('When topic param is invalid, expect a validation error on response');
+  // ('When sortBy param is invalid, expect a validation error on response');
+  // ('When sortOrder param is invalid, expect a validation error on response');
+});
