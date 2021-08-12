@@ -106,11 +106,93 @@ describe('Auth controller login', () => {
     });
   });
 
-  // test('When username does not exist, expect a 401 response', async () => {});
+  test('When username does not exist, expect a 401 response', async () => {
+    // Arrange
+    const username = 'rs.joemon001';
+    const password = 'password!';
+    const req = getMockReq({
+      body: {
+        username,
+        password,
+      },
+    });
 
-  // test('When password does not match, expect a 401 response', async () => {});
+    // mocks
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
 
-  // test('When an unhandled error occurs, expect a 500 response', async () => {});
+    // Act
+    const response = await authController.login(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Unauthorized',
+      statusCode: 401,
+      payload: null,
+      errorMessage: 'Invalid credentials',
+      fields: [],
+    });
+  });
+
+  test('When password does not match, expect a 401 response', async () => {
+    // Arrange
+    const username = 'rs.joemon001';
+    const password = 'incorrect one';
+    const req = getMockReq({
+      body: {
+        username,
+        password,
+      },
+    });
+
+    // mocks
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      username,
+      passwordHash:
+        '$2b$10$XDnIFdbz/R4qdLkhrAlco.LPJE2IlqdYOhKrprvGluBdS9vH.Ujzu',
+    }));
+
+    // Act
+    const response = await authController.login(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Unauthorized',
+      statusCode: 401,
+      payload: null,
+      errorMessage: 'Invalid credentials',
+      fields: [],
+    });
+  });
+
+  test('When an unhandled error occurs, expect a 500 response', async () => {
+    // Arrange
+    const errMe = 'Gg ..';
+    const username = 'rs.joemon001';
+    const password = 'incorrect one';
+    const req = getMockReq({
+      body: {
+        username,
+        password,
+      },
+    });
+
+    // mocks
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => {
+      throw new Error(errMe);
+    });
+
+    // Act
+    const response = await authController.login(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Internal_Server_Error',
+      statusCode: 500,
+      payload: null,
+      errorMessage: errMe,
+      fields: [],
+    });
+  });
 });
 
 describe('Auth controller register', () => {
