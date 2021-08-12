@@ -9,8 +9,6 @@ const UsersRepository = require('../../../repositories/Users.Repository');
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
 
-jest.mock('../../../services/Users.Service');
-
 const authController = new AuthController();
 
 afterEach(() => {
