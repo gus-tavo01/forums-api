@@ -6,5 +6,5 @@ module.exports = (value, key, opts) =>
     value,
     key,
     'numeric',
-    () => !validator.isNumeric(value, opts)
+    () => !validator.isNumeric(value.toString(), opts)
   );
