@@ -134,7 +134,7 @@ class AuthController {
       }
       apiResponse.created(createdAccount.username);
     } catch (error) {
-      apiResponse.internalServerError(error);
+      apiResponse.internalServerError(error.message);
     }
     return res.response(apiResponse);
   };
