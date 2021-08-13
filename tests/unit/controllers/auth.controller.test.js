@@ -195,7 +195,9 @@ describe('Auth controller login', () => {
 
 describe('Auth controller register', () => {
   afterEach(() => {
-    AccountsRepository.prototype.findByUsername.mockReset();
+    if (AccountsRepository.prototype.findByUsername) {
+      AccountsRepository.prototype.findByUsername.mockReset();
+    }
   });
 
   test('When user data is valid, expect a successful response', async () => {
@@ -264,17 +266,172 @@ describe('Auth controller register', () => {
     });
   });
 
-  // test('When username is invalid, expect a 422 response with validation errors', async () => {});
+  test('When username is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const username = null;
+    const req = getMockReq({
+      body: {
+        username,
+        password: 'password!',
+        email: 'yayi@gmail.com',
+        dateOfBirth: '2010-10-21',
+      },
+    });
 
-  // test('When email is invalid, expect a 422 response with validation errors', async () => {});
+    // Act
+    const response = await authController.register(req, res);
 
-  // test('When password is invalid, expect a 422 response with validation errors', async () => {});
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      message: 'Bad_Request',
+      fields: [
+        `Field 'username' expected to be nonEmptyString. Got: ${username}`,
+      ],
+      errorMessage: 'Validation errors',
+    });
+  });
 
-  // test('When dateOfBirth is invalid, expect a 422 response with validation errors', async () => {});
+  test('When email is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const email = 'GG';
+    const req = getMockReq({
+      body: {
+        username: 'GG',
+        password: 'password!',
+        email,
+        dateOfBirth: '2010-10-21',
+      },
+    });
 
-  // test('When create account fails, expect to rollback user profile', async () => {});
+    // Act
+    const response = await authController.register(req, res);
 
-  // test('When an exception occurs, expect a 500 server error', async () => {});
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      message: 'Bad_Request',
+      fields: [`Field 'email' expected to be email. Got: ${email}`],
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When password is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const password = {};
+    const req = getMockReq({
+      body: {
+        username: 'GG',
+        password,
+        email: 'gustavoa.loera02@gmail.com',
+        dateOfBirth: '2010-10-21',
+      },
+    });
+
+    // Act
+    const response = await authController.register(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      message: 'Bad_Request',
+      fields: [
+        `Field 'password' expected to be nonEmptyString. Got: ${password}`,
+      ],
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When dateOfBirth is invalid, expect a 400 response with validation errors', async () => {
+    // Arrange
+    const dateOfBirth = 'GG';
+    const req = getMockReq({
+      body: {
+        username: 'GG',
+        password: 'password!',
+        email: 'gg@gmail.com',
+        dateOfBirth,
+      },
+    });
+
+    // Act
+    const response = await authController.register(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      message: 'Bad_Request',
+      fields: [`Field 'dateOfBirth' expected to be Date. Got: ${dateOfBirth}`],
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When create account fails, expect to rollback user profile', async () => {
+    // Arrange
+    const username = 'paco.perez01';
+    const req = getMockReq({
+      body: {
+        username,
+        email: 'pac.per@gmail.com',
+        dateOfBirth: '2000-02-16',
+        password: 'password!',
+      },
+    });
+
+    // mocks
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+    UsersRepository.prototype.add = jest.fn(async () => ({
+      id: 'ertuasd1344235sdf4',
+    }));
+    AccountsRepository.prototype.add = jest.fn(async () => null);
+    UsersRepository.prototype.remove = jest.fn(async () => ({}));
+
+    // Act
+    const response = await authController.register(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      payload: null,
+      errorMessage: 'Login account cannot be created, please try again later',
+      fields: [],
+    });
+  });
+
+  test('When an exception occurs, expect a 500 server error', async () => {
+    // Arrange
+    const erre = 'This endpoint sucks';
+    const username = 'lana.rd';
+    const req = getMockReq({
+      body: {
+        username,
+        password: 'password!',
+        email: 'tiktok@gmail.com',
+        dateOfBirth: '2010-10-21',
+      },
+    });
+
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => {
+      throw new Error(erre);
+    });
+
+    // Act
+    const response = await authController.register(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 500,
+      payload: null,
+      message: 'Internal_Server_Error',
+      errorMessage: erre,
+      fields: [],
+    });
+  });
 });
 
 describe('Auth controller resetPassword', () => {
