@@ -122,25 +122,160 @@ describe('Participants Controller POST', () => {
     });
   });
 
-  // test('When requestor is not authenticated, expect a 403 response', async () => {});
+  test('When requestor is not authenticated, expect a 403 response', async () => {
+    // Arrange
+    const forumId = 5;
+    const req = getMockReq({
+      body: { username: 'dev.user', role: 'Operator' },
+      params: { forumId },
+      user: null,
+    });
 
-  // test('When requestor role is unauthorized, expect a 403 response', async () => {});
+    // Act
+    const response = await participantsController.post(req, res);
 
-  // test('When requestor is not a forum member, expect a 403 response', async () => {});
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 401,
+      errorMessage: 'Authentication required',
+      message: 'Unauthorized',
+      payload: null,
+      fields: [],
+    });
+  });
 
-  // test('When source account is not found, expect a 422 response', async () => {});
+  test('When requestor role is unauthorized, expect a 403 response', async () => {
+    // Arrange
+    const username = 'testerDeveloper001';
+    const participantData = { username: 'ticky.perez', role: 'Participant' };
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
 
-  // test('When source account is inactive, expect a 422 response', async () => {});
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      role: 'Participant',
+    }));
 
-  // test('When source user role is invalid, expect a 422 response', async () => {});
+    // Act
+    const apiResponse = await participantsController.post(req, res);
 
-  // test('When source user is already a forum member, expect a 409 response', async () => {});
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 403,
+      message: 'Forbidden',
+      errorMessage: `${username} does not have the required role permissions`,
+      fields: [],
+    });
+  });
+
+  test('When requestor is not a forum member, expect a 403 response', async () => {
+    // Arrange
+    const username = 'testerDeveloper001';
+    const participantData = { username: 'ticky.perez', role: 'Participant' };
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(
+      async () => null
+    );
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 403,
+      message: 'Forbidden',
+      errorMessage: `${username} is not a member of this forum`,
+      fields: [],
+    });
+  });
+
+  test('When target user role is invalid, expect a 422 response', async () => {
+    // Arrange
+    const username = 'unit.test003';
+    const participantData = { username: 'yayis.loera', role: 'Obispo' };
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: `Forum participant role: '${participantData.role}' is incorrect`,
+      fields: [],
+    });
+  });
 
   // test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {});
 
   // test('When request is an operator transfer and request is valid, expect to be success', async () => {});
 
   // test('When update current operator fails, expect a 422 response', async () => {});
+
+  test('When source account is not found, expect a 422 response', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: `Invalid participant`,
+      fields: [],
+    });
+  });
+
+  // test('When source account is inactive, expect a 422 response', async () => {});
+
+  // test('When source user is already a forum member, expect a 409 response', async () => {});
 
   // test('When target forum is not found, expect a 422 response', async () => {});
 
