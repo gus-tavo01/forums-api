@@ -101,7 +101,7 @@ class ParticipantsController {
         requestorParticipant.role !== Roles.operator
       ) {
         apiResponse.forbidden(
-          `${requestorUser.username} does not have the required role permissions`
+          `${requestorUser.username} is not the current forum operator`
         );
         return res.response(apiResponse);
       }
