@@ -37,6 +37,12 @@ class ParticipantsController {
         params: { forumId },
       } = req;
 
+      // Step validate auth user
+      if (!requestorUser) {
+        apiResponse.unauthorized('Authentication required');
+        return res.response(apiResponse);
+      }
+
       // Step validate request data
       const [
         { isValid: isModelValid, fields: modelFields },
