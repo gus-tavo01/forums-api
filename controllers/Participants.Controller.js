@@ -129,7 +129,10 @@ class ParticipantsController {
 
       // Step get target forum
       const targetForum = await this.forumsRepo.findById(forumId);
-      if (!targetForum || !targetForum.isActive) {
+      if (
+        !targetForum ||
+        (!targetForum.isActive && body.role !== Roles.operator)
+      ) {
         apiResponse.unprocessableEntity('Invalid forum');
         return res.response(apiResponse);
       }
@@ -160,10 +163,12 @@ class ParticipantsController {
         apiResponse.unprocessableEntity(
           'Cannot add the participant, please try again later'
         );
-        // Step rollback update current Operator
-        await this.participantsRepo.modify(requestorParticipant.id, {
-          role: Roles.operator,
-        });
+        if (body.role === Roles.operator) {
+          // Step rollback update current Operator
+          await this.participantsRepo.modify(requestorParticipant.id, {
+            role: Roles.operator,
+          });
+        }
         res.response(apiResponse);
       }
 
@@ -177,10 +182,12 @@ class ParticipantsController {
         );
         // Step rollback participant creation
         await this.participantsRepo.remove(addedParticipant.id);
-        // Step rollback update current Operator
-        await this.participantsRepo.modify(requestorParticipant.id, {
-          role: Roles.operator,
-        });
+        if (body.role === Roles.operator) {
+          // Step rollback current Operator update
+          await this.participantsRepo.modify(requestorParticipant.id, {
+            role: Roles.operator,
+          });
+        }
         return res.response(apiResponse);
       }
       apiResponse.ok(addedParticipant);
