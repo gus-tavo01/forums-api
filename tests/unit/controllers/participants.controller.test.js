@@ -270,11 +270,117 @@ describe('Participants Controller POST', () => {
     });
   });
 
-  // test('When request is an operator transfer and request is valid, expect to be success', async () => {});
+  test('When request is an operator transfer and request is valid, expect to be success', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1706';
+    const participantData = {
+      username: 'old.operator',
+      role: Roles.operator,
+      userId: '610ee6899a25e341708f1209',
+    };
+    const requestorData = { username: 'newOperator002', role: Roles.operator };
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: { username: requestorData.username },
+    });
 
-  // test('When request is an operator update and target forum is inactive, expect to be success', async () => {});
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestorData.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: participantData.userId,
+      isActive: true,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: false,
+      participants: 10,
+    }));
+    ParticipantsRepository.prototype.modify = jest.fn(async () => ({
+      role: Roles.operator,
+    }));
+    ParticipantsRepository.prototype.add = jest.fn(async () => ({
+      ...participantData,
+      forumId,
+    }));
+    ForumsRepository.prototype.modify = jest.fn(async () => ({
+      id: forumId,
+    }));
 
-  // test('When update current operator fails, expect a 422 response and process to rollbacked', async () => {});
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(ParticipantsRepository.prototype.modify).toHaveBeenCalled();
+    expect(apiResponse).toMatchObject({
+      payload: {
+        forumId,
+        ...participantData,
+      },
+      statusCode: 200,
+      message: 'Ok',
+      errorMessage: null,
+      fields: [],
+    });
+  });
+
+  test('When update current operator fails, expect a 422 response and process to be canceled', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1706';
+    const participantData = {
+      username: 'old.operator',
+      role: Roles.operator,
+      userId: '610ee6899a25e341708f1209',
+    };
+    const requestorData = { username: 'newOperator002', role: Roles.operator };
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: { username: requestorData.username },
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestorData.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: participantData.userId,
+      isActive: true,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: false,
+      participants: 10,
+    }));
+    ParticipantsRepository.prototype.modify = jest.fn(async () => null);
+    ParticipantsRepository.prototype.add = jest.fn();
+    ForumsRepository.prototype.modify = jest.fn();
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(ParticipantsRepository.prototype.modify).toHaveBeenCalled();
+    expect(ParticipantsRepository.prototype.add).not.toHaveBeenCalled();
+    expect(ForumsRepository.prototype.modify).not.toHaveBeenCalled();
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: 'Cannot modify current operator',
+      fields: [],
+    });
+  });
 
   test('When source account is not found, expect a 422 response', async () => {
     // Arrange
