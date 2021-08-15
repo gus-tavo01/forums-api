@@ -6,6 +6,8 @@ const ParticipantsController = require('../../../controllers/Participants.Contro
 const ForumsRepository = require('../../../repositories/Forums.Repository');
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
 const ParticipantsRepository = require('../../../repositories/Participants.Repository');
+// constants
+const Roles = require('../../../common/constants/roles');
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
 jest.mock('../../../repositories/Accounts.Repository');
@@ -20,8 +22,11 @@ afterEach(() => {
 describe('Participants Controller POST', () => {
   test('When participant data is valid, expect a successful response', async () => {
     // Arrange
-    const participantData = { username: 'ticky.perez', role: 'Participant' };
-    const requestor = { username: 'testerDeveloper001', role: 'Operator' };
+    const participantData = {
+      username: 'ticky.perez',
+      role: Roles.participant,
+    };
+    const requestor = { username: 'testerDeveloper001', role: Roles.operator };
     const forumId = '610ee6890a25e341708f1706';
     const participantUserId = '610ee6890a25e341708f1703';
     const req = getMockReq({
@@ -235,11 +240,41 @@ describe('Participants Controller POST', () => {
     });
   });
 
-  // test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {});
+  test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {
+    // Arrange
+    const username = 'anyone01';
+    const participantData = { username: 'any.one', role: Roles.operator };
+    const requestor = { username, role: Roles.administrator };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 403,
+      message: 'Forbidden',
+      errorMessage: `${username} is not the current forum operator`,
+      fields: [],
+    });
+  });
 
   // test('When request is an operator transfer and request is valid, expect to be success', async () => {});
 
-  // test('When update current operator fails, expect a 422 response', async () => {});
+  // test('When request is an operator update and target forum is inactive, expect to be success', async () => {});
+
+  // test('When update current operator fails, expect a 422 response and process to rollbacked', async () => {});
 
   test('When source account is not found, expect a 422 response', async () => {
     // Arrange
@@ -273,17 +308,219 @@ describe('Participants Controller POST', () => {
     });
   });
 
-  // test('When source account is inactive, expect a 422 response', async () => {});
+  test('When source account is inactive, expect a 422 response', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
 
-  // test('When source user is already a forum member, expect a 409 response', async () => {});
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      isActive: false,
+    }));
 
-  // test('When target forum is not found, expect a 422 response', async () => {});
+    // Act
+    const apiResponse = await participantsController.post(req, res);
 
-  // test('When target forum is inactive, expect a 422 response', async () => {});
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: `Invalid participant`,
+      fields: [],
+    });
+  });
 
-  // test('When create participant process fails, expect a 422 response and rollback', async () => {});
+  test('When source user is already a forum member, expect a 409 response', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const userId = '610ee6890a25e341708f1111';
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
 
-  // test('When modify forum participants count fails, expect the process to be rollbacked', async () => {});
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      isActive: true,
+      userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      userId,
+      forumId,
+    });
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 409,
+      message: 'Conflict',
+      errorMessage: `${participantData.username} is a member of this forum already`,
+      fields: [],
+    });
+  });
+
+  test('When target forum is not found, expect a 422 response', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const userId = '610ee6890a25e341708f1111';
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      isActive: true,
+      userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
+    ForumsRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: 'Invalid forum',
+      fields: [],
+    });
+  });
+
+  test('When target forum is inactive on normal request, expect a 422 response', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = {
+      username: 'yayis.loera',
+      role: Roles.participant,
+    };
+    const userId = '610ee6890a25e341708f1111';
+    const requestor = { username, role: Roles.operator };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      isActive: true,
+      userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: false,
+    }));
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: 'Invalid forum',
+      fields: [],
+    });
+  });
+
+  test('When modify forum participants count fails, expect the process to be rollbacked', async () => {
+    // Arrange
+    const username = 'developer002';
+    const participantData = {
+      username: 'yayis.loera',
+      role: Roles.administrator,
+    };
+    const userId = '610ee6890a25e341708f1111';
+    const requestor = { username, role: 'Operator' };
+    const forumId = '610ee6890a25e341708f1706';
+    const req = getMockReq({
+      params: { forumId },
+      body: participantData,
+      user: requestor,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      isActive: true,
+      userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
+      null
+    );
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: true,
+    }));
+    ParticipantsRepository.prototype.add = jest.fn(async () => ({
+      id: '610ee6890a25e341708f1606',
+      userId,
+      forumId,
+    }));
+    ForumsRepository.prototype.modify = jest.fn(async () => null);
+    ParticipantsRepository.prototype.remove = jest.fn();
+
+    // Act
+    const apiResponse = await participantsController.post(req, res);
+
+    // Assert
+    expect(ParticipantsRepository.prototype.remove).toHaveBeenCalled();
+    expect(apiResponse).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: 'Cannot update the forum, please try again later',
+      fields: [],
+    });
+  });
 });
 
 describe('Participants Controller DELETE', () => {
