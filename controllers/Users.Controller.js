@@ -12,7 +12,7 @@ class UsersController {
     this.forumsRepo = new ForumsRepository();
 
     // register endpoint routes
-    this.router.get('/', this.get);
+    this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
     this.router.get('/:id/forums', useAuth, this.getPrivateForums);
   }
