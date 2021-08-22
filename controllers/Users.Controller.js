@@ -1,18 +1,18 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
 const useAuth = require('../middlewares/useJwtAuth');
-const UsersService = require('../services/Users.Service');
+const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
 // api/v0/users
 class UsersController {
   constructor() {
     this.router = Router();
-    this.usersService = new UsersService();
+    this.usersRepo = new UsersRepository();
     this.forumsRepo = new ForumsRepository();
 
     // register endpoint routes
-    this.router.get('/', this.get);
+    this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
     this.router.get('/:id/forums', useAuth, this.getPrivateForums);
   }
@@ -20,13 +20,18 @@ class UsersController {
   get = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const filters = req.query;
-      const response = await this.usersService.get(filters);
-      if (response.fields.length) {
-        apiResponse.badRequest('Check for errors', response.fields);
-        return res.response(apiResponse);
-      }
-      apiResponse.ok(response.result);
+      const defaultFilters = {
+        page: 1,
+        pageSize: 15,
+      };
+      const filters = { ...defaultFilters, ...req.query };
+
+      // Step validate filters
+      // TODO
+
+      // Step get users
+      const response = await this.usersRepo.find(filters);
+      apiResponse.ok(response);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
@@ -37,12 +42,12 @@ class UsersController {
     const apiResponse = new ApiResponse();
     try {
       const { id } = req.params;
-      const response = await this.usersService.getById(id);
-      if (!response.result) {
-        apiResponse.notFound('User is not found');
-        return res.response(apiResponse);
-      }
-      apiResponse.ok(response.result);
+      // Step validate params
+      // TODO
+
+      // Step get user
+      const user = await this.usersRepo.findById(id);
+      apiResponse.ok(user);
     } catch (error) {
       apiResponse.internalServerError(error.message);
       console.log(error);
@@ -68,20 +73,15 @@ class UsersController {
       };
 
       // Step verify resource user id exist
-      const userResponse = await this.usersService.getById(id);
-      if (userResponse.fields.length) {
-        apiResponse.badRequest('Invalid user id');
+      const foundUser = await this.usersRepo.findById(id);
+      if (!foundUser) {
+        apiResponse.unprocessableEntity('User resource is not found');
         return res.response(apiResponse);
       }
-      if (!userResponse.result) {
-        apiResponse.badRequest('User resource is not found');
-        return res.response(apiResponse);
-      }
-      const resourceUserData = userResponse.result;
 
       // Step validate auth user is is eq to resource id
-      if (user.username !== resourceUserData.username) {
-        apiResponse.forbidden('Cannot view forums from another user');
+      if (user.username !== foundUser.username) {
+        apiResponse.forbidden('Cannot view other users forums');
         return res.response(apiResponse);
       }
 
