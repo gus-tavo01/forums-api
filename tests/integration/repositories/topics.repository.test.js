@@ -1,10 +1,10 @@
 require('dotenv').config();
 const TopicsRepository = require('../../../repositories/Topics.Repository');
-const setupDb = require('../../../config/database');
+const database = require('../../../config/database');
 
 // setup DB
 beforeAll(() => {
-  setupDb();
+  database.disconnect();
 });
 
 describe('Topics Repository find', () => {

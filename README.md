@@ -17,13 +17,12 @@ Restful API for forums management
 ### Controllers/Endpoints
 
 - Define HTTP status
-- Access data layer through Model
+- Access data layer through repos
 - Business specific validations
 - Invoke model validator
 
 ### Repositories
 
-- validate empties | model validator?
 - Consumes DB
 - Create DB queries
 - Return mapped entity
@@ -34,14 +33,17 @@ Restful API for forums management
 
 - Controllers
   - Mocked service calls
-- Services
-  - Mocked repo calls
+  - Mock express
+- Repositories
+  - Mocked DB calls
 
-### Integration E2e
+### Integration
 
-- Repository layer
-  - CRUD operations
-  - No mocked data
+- Controllers
+  - CRUD E2E operations
+  - No mocked services
+  - Mock express
+- Repositories
 
 ## Core endpoints
 
@@ -52,7 +54,7 @@ Restful API for forums management
   - POST forum
 - Participants
   - POST add to forum
-  - DELETE remove from forum 
+  - DELETE remove from forum
 
 ## Testing todos (remove later)
 
@@ -67,18 +69,23 @@ Restful API for forums management
 
 ## Incoming Features
 
-### Invite participants
+### Forum Participants
+
+#### Invite participants
 
 - endpoint forums/{id}/participants
   - POST
     - update count on forum model
   - DELETE /{id}
     - update count on forum model
-  - GET /{id}
-    - retrieve participant profile?
-    - to be defined later
-  - PATCH /{id}
-    - edit role on forum
+
+#### Manage Participants
+
+- GET /{id}
+  - retrieve participant profile?
+  - to be defined later
+- PATCH /{id}
+  - edit role on forum
 
 ### Load images
 

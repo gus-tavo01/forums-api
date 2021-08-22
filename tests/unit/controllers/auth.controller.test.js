@@ -41,15 +41,13 @@ describe('Auth controller login', () => {
     const expectedStatusCode = 200;
 
     // Act
-    await authController.login(req, res);
+    const response = await authController.login(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payload: expect.anything(),
-        statusCode: expectedStatusCode,
-      })
-    );
+    expect(response).toMatchObject({
+      payload: expect.anything(),
+      statusCode: expectedStatusCode,
+    });
   });
 
   // test('When username does not exist, expect a 401 response', async () => {});
@@ -97,15 +95,13 @@ describe('Auth controller register', () => {
     UsersService.prototype.add = jest.fn(async () => mockAddUserAccount);
 
     // Act
-    await authController.register(req, res);
+    const response = await authController.register(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining({
-        statusCode: 201,
-        payload: expect.anything(),
-      })
-    );
+    expect(response).toMatchObject({
+      statusCode: 201,
+      payload: expect.anything(),
+    });
   });
 
   test('When username already exists, expect a 409 http response', async () => {
@@ -129,18 +125,16 @@ describe('Auth controller register', () => {
     LoginsService.prototype.findByUsername = jest.fn(async () => mockLoginUser);
 
     // Act
-    await authController.register(req, res);
+    const response = await authController.register(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining({
-        statusCode: 409,
-        payload: null,
-      })
-    );
+    expect(response).toMatchObject({
+      statusCode: 409,
+      payload: null,
+    });
   });
 
-  // for each param on body, do a test
+  // TODO -> for each param on body, do a test
 });
 
 describe('Auth controller resetPassword', () => {
@@ -171,12 +165,10 @@ describe('Auth controller resetPassword', () => {
     LoginsService.prototype.update = jest.fn(async () => mockUpdateUser);
 
     // Act
-    await authController.resetPassword(req, res);
+    const response = await authController.resetPassword(req, res);
 
     // Assert
-    expect(res.response).toHaveBeenCalledWith(
-      expect.objectContaining({ statusCode: 200 })
-    );
+    expect(response).toMatchObject({ statusCode: 200 });
   });
 
   // test('When user in token is not the one in req params, expect a forbidden response');

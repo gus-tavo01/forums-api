@@ -19,6 +19,7 @@ const ForumSchema = new Schema({
     required: false,
     default: Date.now,
   },
+  // updateDate: { type: Date, required: true, default: null, },
   imageSrc: {
     type: String,
     required: false,
@@ -29,6 +30,7 @@ const ForumSchema = new Schema({
     required: false,
     default: 0,
   },
+  // participants: { type: Model, required: false, default: [] },
   lastActivity: {
     type: Date,
     required: false,

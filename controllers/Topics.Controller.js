@@ -2,13 +2,13 @@ const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const TopicsService = require('../services/Topics.Service');
-const ForumsService = require('../services/Forums.Service');
+const ForumsRepository = require('../repositories/Forums.Repository');
 
 class TopicsController {
   constructor() {
     this.router = Router({ mergeParams: true });
     this.topicsService = new TopicsService();
-    this.forumsService = new ForumsService();
+    this.forumsRepo = new ForumsRepository();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
@@ -38,17 +38,13 @@ class TopicsController {
     try {
       const { forumId } = req.params;
       const { body, user } = req;
+
       // Step get forum
-      const getForumResponse = await this.forumsService.getById(forumId);
-      if (getForumResponse.fields.length) {
-        apiResponse.badRequest('Invalid forum', getForumResponse.fields);
-        return res.response(apiResponse);
-      }
-      if (!getForumResponse.result) {
+      const forum = await this.forumsRepo.findById(forumId);
+      if (!forum) {
         apiResponse.unprocessableEntity('Forum does not exist');
         return res.response(apiResponse);
       }
-      const forum = getForumResponse.result;
 
       // Step validate user can create topics
       if (forum.author !== user.username) {
@@ -111,16 +107,11 @@ class TopicsController {
       }
 
       // Step get forum
-      const getForumResponse = await this.forumsService.getById(forumId);
-      if (getForumResponse.fields.length) {
-        apiResponse.unprocessableEntity('Invalid forumId');
-        return res.response(apiResponse);
-      }
-      if (!getForumResponse.result) {
+      const forum = await this.forumsRepo.findById(forumId);
+      if (!forum) {
         apiResponse.unprocessableEntity('Forum is not found');
         return res.response(apiResponse);
       }
-      const forum = getForumResponse.result;
 
       // Step validate user can delete topics
       if (forum.author !== user.username) {
