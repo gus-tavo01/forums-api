@@ -28,7 +28,7 @@ class UsersRepository extends RepositoryBase {
       options.limit = filters.pageSize;
     }
 
-    const users = User.paginate(filter, options);
+    const users = await User.paginate(filter, options);
     return mapProfiles(users);
   };
 }
