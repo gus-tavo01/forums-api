@@ -2,7 +2,7 @@ module.exports = (forums) => {
   const result = { ...forums };
   result.docs = forums.docs.map((forum) => ({
     id: forum.id,
-    name: forum.name,
+    topic: forum.topic,
     description: forum.description,
     author: forum.author,
     createDate: forum.createDate,
