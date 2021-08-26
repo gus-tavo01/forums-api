@@ -744,7 +744,63 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
-  // test('When requestor role is not valid, expect a 403 response', async () => {});
+  test('When requestor role is not valid, expect a 403 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const userId = '650ee6890a25e341708f1505';
+    const req = getMockReq({
+      params: { userId, forumId },
+      user: {
+        username: 'Unit.Test',
+      },
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      role: Roles.viewer,
+    }));
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 403,
+      fields: [],
+      errorMessage: 'Requestor role does not have sufficient permissions',
+      message: 'Forbidden',
+      payload: null,
+    });
+  });
+
+  test('When requestor is not member of the forum, expect a 403 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const userId = '650ee6890a25e341708f1505';
+    const req = getMockReq({
+      params: { userId, forumId },
+      user: {
+        username: 'Unit.Test',
+      },
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(
+      async () => null
+    );
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 403,
+      fields: [],
+      errorMessage: 'Requestor is not a member of this forum',
+      message: 'Forbidden',
+      payload: null,
+    });
+  });
 
   // test('When request is self for leaving forum, expect to be success', async () => {});
 
