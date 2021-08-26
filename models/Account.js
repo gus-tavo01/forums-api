@@ -24,11 +24,6 @@ const AccountSchema = new Schema({
     required: false,
     default: null,
   },
-  userId: {
-    type: Schema.Types.ObjectId,
-    isRequired: false,
-    default: null,
-  },
 });
 
 const Account = model('Account', AccountSchema);
