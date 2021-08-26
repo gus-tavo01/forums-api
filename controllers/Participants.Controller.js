@@ -219,13 +219,34 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step get requestor user
+      const requestorUserProfile = await this.usersRepo.findByUsername(
+        requestorUser.username
+      );
+      if (!requestorUserProfile) {
+        apiResponse.unprocessableEntity('Cannot get user profile');
+        return res.response(apiResponse);
+      }
+
       // Step get requestor role
       const requestorParticipant = await this.participantsRepo.findByUserAndForum(
-        requestorUser.userId,
+        requestorUserProfile.id,
         forumId
       );
       if (!requestorParticipant) {
         apiResponse.forbidden('Requestor is not a member of this forum');
+        return res.response(apiResponse);
+      }
+
+      // Step get target participant
+      const sourceParticipant = await this.participantsRepo.findByUserAndForum(
+        userId,
+        forumId
+      );
+      if (!sourceParticipant) {
+        apiResponse.notFound(
+          `${sourceUserAccount.username} is not member of this forum`
+        );
         return res.response(apiResponse);
       }
 
@@ -237,6 +258,12 @@ class ParticipantsController {
         apiResponse.forbidden(
           'Requestor role does not have sufficient permissions'
         );
+        return res.response(apiResponse);
+      }
+
+      // Step validate target role
+      if (sourceParticipant.role === Roles.operator) {
+        apiResponse.forbidden('Forum Operator cannot be removed');
         return res.response(apiResponse);
       }
 
@@ -253,24 +280,6 @@ class ParticipantsController {
       );
       if (!sourceUserAccount || !sourceUserAccount.isActive) {
         apiResponse.unprocessableEntity('Invalid participant');
-        return res.response(apiResponse);
-      }
-
-      // Step get source participant
-      const sourceParticipant = await this.participantsRepo.findByUserAndForum(
-        userId,
-        forumId
-      );
-      if (!sourceParticipant) {
-        apiResponse.notFound(
-          `${sourceUserAccount.username} is not member of this forum`
-        );
-        return res.response(apiResponse);
-      }
-
-      // Step validate target role
-      if (sourceParticipant.role === Roles.operator) {
-        apiResponse.forbidden('Forum Operator cannot be removed');
         return res.response(apiResponse);
       }
 
