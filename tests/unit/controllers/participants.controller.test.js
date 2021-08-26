@@ -744,6 +744,7 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
+  // TODO
   test('When requestor role is not valid, expect a 403 response', async () => {
     // Arrange
     const forumId = '610ee6890a25e341708f1702';
@@ -773,6 +774,7 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
+  // TODO
   test('When requestor is not member of the forum, expect a 403 response', async () => {
     // Arrange
     const forumId = '610ee6890a25e341708f1702';
@@ -802,7 +804,8 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
-  // test('When request is self for leaving forum, expect to be success', async () => {});
+  // TODO
+  test('When request is self for leaving forum, expect to be success', async () => {});
 
   // test('When source participant is not found, expect a 404 response', async () => {});
 
