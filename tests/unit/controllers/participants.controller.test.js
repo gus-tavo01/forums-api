@@ -5,12 +5,14 @@ const ParticipantsController = require('../../../controllers/Participants.Contro
 // repositories
 const ForumsRepository = require('../../../repositories/Forums.Repository');
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
+const UsersRepository = require('../../../repositories/Users.Repository');
 const ParticipantsRepository = require('../../../repositories/Participants.Repository');
 // constants
 const Roles = require('../../../common/constants/roles');
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
 jest.mock('../../../repositories/Accounts.Repository');
+jest.mock('../../../repositories/Users.Repository');
 jest.mock('../../../repositories/Participants.Repository');
 
 const participantsController = new ParticipantsController();
@@ -647,8 +649,11 @@ describe('Participants Controller DELETE', () => {
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: 'Operator',
     });
-    AccountsRepository.prototype.findByUserId = jest.fn(async () => ({
-      userId,
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      id: userId,
+      username,
+    }));
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
       username,
       isActive: true,
       role: 'Administrator',

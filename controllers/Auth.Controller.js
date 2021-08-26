@@ -122,7 +122,6 @@ class AuthController {
       const createdAccount = await this.accountsRepo.add({
         username,
         passwordHash,
-        userId: createdProfile.id,
       });
       if (!createdAccount) {
         // Step rollback user profile

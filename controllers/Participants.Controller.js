@@ -5,6 +5,7 @@ const ApiResponse = require('../common/ApiResponse');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 const AccountsRepository = require('../repositories/Accounts.Repository');
+const UsersRepository = require('../repositories/Users.Repository');
 // validators
 const validations = require('../utilities/validations');
 const {
@@ -22,6 +23,7 @@ class ParticipantsController {
 
     this.forumsRepo = new ForumsRepository();
     this.accountsRepo = new AccountsRepository();
+    this.usersRepo = new UsersRepository();
     this.participantsRepo = new ParticipantsRepository();
 
     this.router.delete('/:userId', useJwtAuth, this.delete);
@@ -238,8 +240,17 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step get source user
+      const sourceUser = await this.usersRepo.findById(userId);
+      if (!sourceUser) {
+        apiResponse.unprocessableEntity('Invalid participant');
+        return res.response(apiResponse);
+      }
+
       // Step get source account
-      const sourceUserAccount = await this.accountsRepo.findByUserId(userId);
+      const sourceUserAccount = await this.accountsRepo.findByUsername(
+        sourceUser.username
+      );
       if (!sourceUserAccount || !sourceUserAccount.isActive) {
         apiResponse.unprocessableEntity('Invalid participant');
         return res.response(apiResponse);
