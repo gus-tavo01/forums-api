@@ -8,6 +8,11 @@ class UsersRepository extends RepositoryBase {
     super(User, mapProfile);
   }
 
+  findByUsername = async (username) => {
+    const user = await User.find({ username });
+    return mapProfile(user);
+  };
+
   find = async (filters) => {
     const filter = {};
     const options = { page: 1 };
