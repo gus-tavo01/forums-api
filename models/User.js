@@ -12,6 +12,8 @@ const UserSchema = new Schema({
     default: Date.now,
   },
   updateDate: { type: Date, required: false, default: null },
+  language: { type: String, required: false, default: 'ENG' },
+  // appTheme: {  }
 });
 
 UserSchema.plugin(mongoosePaginate);
