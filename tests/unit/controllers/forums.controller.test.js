@@ -75,7 +75,7 @@ describe('Forums Controller POST', () => {
       fields: [
         `Field 'topic' expected to be nonEmptyString. Got: ${forumData.topic}`,
         `Field 'description' expected to be nonEmptyString. Got: ${forumData.description}`,
-        `Field 'isPrivate' expected to be boolean. Got: ${forumData.isPrivate}`,
+        `Field 'isPrivate' expected to be Boolean. Got: ${forumData.isPrivate}`,
       ],
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
