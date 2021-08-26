@@ -741,6 +741,8 @@ describe('Participants Controller DELETE', () => {
 
   // test('When requestor role is not valid, expect a 403 response', async () => {});
 
+  // test('When request is self for leaving forum, expect to be success', async () => {});
+
   // test('When source participant is not found, expect a 404 response', async () => {});
 
   // test('When source participant is inactive, expect a 422 response', async () => {});
