@@ -34,7 +34,7 @@ class ParticipantsController {
     const apiResponse = new ApiResponse();
     try {
       const {
-        user: requestorUser,
+        user: { username: requestorUsername },
         body,
         params: { forumId },
       } = req;
@@ -64,14 +64,23 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step get requestor user
+      const requestorUser = await this.usersRepo.findByUsername(
+        requestorUsername
+      );
+      if (!requestorUser) {
+        apiResponse.unprocessableEntity('Invalid request');
+        return res.response(apiResponse);
+      }
+
       // Step get requestor role
       const requestorParticipant = await this.participantsRepo.findByUserAndForum(
-        requestorUser.userId,
+        requestorUser.id,
         forumId
       );
       if (!requestorParticipant) {
         apiResponse.forbidden(
-          `${requestorUser.username} is not a member of this forum`
+          `${requestorUsername} is not a member of this forum`
         );
         return res.response(apiResponse);
       }
@@ -82,7 +91,7 @@ class ParticipantsController {
       );
       if (!isAuthorized) {
         apiResponse.forbidden(
-          `${requestorUser.username} does not have the required role permissions`
+          `${requestorUsername} does not have the required role permissions`
         );
         return res.response(apiResponse);
       }
@@ -103,7 +112,7 @@ class ParticipantsController {
         requestorParticipant.role !== Roles.operator
       ) {
         apiResponse.forbidden(
-          `${requestorUser.username} is not the current forum operator`
+          `${requestorUsername} is not the current forum operator`
         );
         return res.response(apiResponse);
       }
@@ -117,9 +126,16 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
+      // Step get user profile
+      const sourceProfile = await this.usersRepo.findByUsername(body.username);
+      if (!sourceProfile) {
+        apiResponse.unprocessableEntity('Invalid participant');
+        return res.response(apiResponse);
+      }
+
       // Step validate source participant is not a member already
       const sourceParticipant = await this.participantsRepo.findByUserAndForum(
-        sourceUserAccount.userId,
+        sourceProfile.id,
         forumId
       );
       if (sourceParticipant) {
@@ -138,6 +154,8 @@ class ParticipantsController {
         apiResponse.unprocessableEntity('Invalid forum');
         return res.response(apiResponse);
       }
+
+      let currentOperator;
 
       // Step replace current operator by the provided one
       if (body.role === Roles.operator) {
@@ -158,8 +176,8 @@ class ParticipantsController {
         username: body.username,
         role: body.role,
         forumId,
-        userId: sourceUserAccount.userId,
-        avatar: sourceUserAccount.avatar,
+        userId: sourceProfile.id,
+        avatar: sourceProfile.avatar,
       });
       if (!addedParticipant) {
         apiResponse.unprocessableEntity(
