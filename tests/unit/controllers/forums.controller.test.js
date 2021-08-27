@@ -3,10 +3,12 @@ const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
+const UsersRepository = require('../../../repositories/Users.Repository');
 const ParticipantsRepository = require('../../../repositories/Participants.Repository');
 
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
+jest.mock('../../../repositories/Users.Repository');
 jest.mock('../../../repositories/Participants.Repository');
 
 const forumsController = new ForumsController();
@@ -43,6 +45,9 @@ describe('Forums Controller POST', () => {
       participants: [],
       ...forumData,
     };
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
     ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
     ParticipantsRepository.prototype.add = jest.fn(async () => ({ username }));
 
@@ -89,29 +94,6 @@ describe('Forums Controller POST', () => {
     expect(response).toMatchObject(expectedResponse);
   });
 
-  test('When user is not authorized, expect response to be 401', async () => {
-    // Arrange
-    const req = getMockReq({
-      body: {
-        topic: 'Gym',
-        description: 'Is cool',
-        author: 'Me :p',
-        isActive: false,
-      },
-    });
-
-    // Act
-    const response = await forumsController.post(req, res);
-
-    // Assert
-    expect(response).toMatchObject({
-      statusCode: 401,
-      errorMessage: 'Authorization required',
-      message: 'Unauthorized',
-      fields: [],
-    });
-  });
-
   test('When creating the forum participant fails, expect forum creation to rollback', async () => {
     // Arrange
     const username = 'r.janvan001';
@@ -133,6 +115,9 @@ describe('Forums Controller POST', () => {
       participants: [],
       ...forumData,
     };
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
     ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
     ParticipantsRepository.prototype.add = jest.fn(async () => null);
     ForumsRepository.prototype.remove = jest.fn(async () => mockAddForum);
@@ -171,6 +156,9 @@ describe('Forums Controller POST', () => {
     };
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
     ForumsRepository.prototype.add = jest.fn(async () => {
       throw new Error(errorMessage);
     });
