@@ -4,6 +4,7 @@ const ApiResponse = require('../common/ApiResponse');
 const Roles = require('../common/constants/roles');
 // repositories
 const ForumsRepository = require('../repositories/Forums.Repository');
+const UsersRepository = require('../repositories/Users.Repository');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
 // validators
 const validations = require('../utilities/validations');
@@ -19,6 +20,7 @@ class ForumsController {
     this.router = Router();
     this.forumsRepo = new ForumsRepository();
     this.participantsRepo = new ParticipantsRepository();
+    this.usersRepo = new UsersRepository();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
@@ -90,6 +92,13 @@ class ForumsController {
         return res.response(apiResponse);
       }
 
+      // Step get requestor
+      const requestor = await this.usersRepo.findByUsername(user.username);
+      if (!requestor) {
+        apiResponse.unprocessableEntity('User profile cannot be retrieved');
+        return res.response(apiResponse);
+      }
+
       // Step create forum
       const createdForum = await this.forumsRepo.add({
         topic,
@@ -110,7 +119,7 @@ class ForumsController {
         username: user.username,
         role: Roles.operator,
         forumId: createdForum.id,
-        userId: user.userId,
+        userId: requestor.id,
         avatar: user.avatar,
       });
       if (!participant) {
