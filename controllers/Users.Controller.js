@@ -1,8 +1,12 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
 const useAuth = require('../middlewares/useJwtAuth');
+
 const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
+
+const validations = require('../utilities/validations');
+const { executeValidations } = require('../common/processors/errorManager');
 
 // api/v0/users
 class UsersController {
@@ -27,7 +31,18 @@ class UsersController {
       const filters = { ...defaultFilters, ...req.query };
 
       // Step validate filters
-      // TODO
+      const { isValid, fields } = await executeValidations([
+        validations.isNumeric(filters.page, 'page'),
+        validations.isNumeric(filters.pageSize, 'pageSize'),
+        // validations.isOptional(filters.username, 'username'),
+        // validations.isOptional(filters.email, 'email'),
+        // validations.isOptional(filters.language, 'language'),
+        // validations.isOptional(filters.isActive, 'isActive'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step get users
       const response = await this.usersRepo.find(filters);
@@ -42,15 +57,21 @@ class UsersController {
     const apiResponse = new ApiResponse();
     try {
       const { id } = req.params;
+
       // Step validate params
-      // TODO
+      const { isValid, fields } = await executeValidations([
+        validations.isMongoId(id, 'id'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step get user
       const user = await this.usersRepo.findById(id);
       apiResponse.ok(user);
     } catch (error) {
       apiResponse.internalServerError(error.message);
-      console.log(error);
     }
     return res.response(apiResponse);
   };
@@ -71,6 +92,9 @@ class UsersController {
         ...req.query,
         author: user.username,
       };
+
+      // Step validate filters
+      // TODO
 
       // Step verify resource user id exist
       const foundUser = await this.usersRepo.findById(id);

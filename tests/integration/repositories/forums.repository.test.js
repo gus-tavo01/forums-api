@@ -10,6 +10,10 @@ beforeAll(() => {
   forumsRepo = new ForumsRepository();
 });
 
+afterAll(() => {
+  database.disconnect();
+});
+
 describe('Forums Repository Find', () => {
   test('When filters are provided, expect to retrieve a list of forums', async () => {
     // Arrange
@@ -28,7 +32,7 @@ describe('Forums Repository Add', () => {
   test('When forum data is valid, expect to be created successfully', async () => {
     // Arrange
     const forumData = {
-      name: 'Integrated one',
+      topic: 'Integrated one',
       description: 'Added through integration test. Is temporal',
       author: 'Integration Test',
       isPrivate: false,

@@ -1,23 +1,21 @@
 require('dotenv').config();
-const { res, clearMockRes } = require('../helpers/mockResponse')();
+const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const ForumsController = require('../../../controllers/Forums.Controller');
 const ForumsRepository = require('../../../repositories/Forums.Repository');
+const UsersRepository = require('../../../repositories/Users.Repository');
+const ParticipantsRepository = require('../../../repositories/Participants.Repository');
 
 // mocks
 jest.mock('../../../repositories/Forums.Repository');
+jest.mock('../../../repositories/Users.Repository');
+jest.mock('../../../repositories/Participants.Repository');
 
 const forumsController = new ForumsController();
-
-//#region Test Suite Setup
-beforeAll(() => {
-  jest.setTimeout(5 * 60 * 1000);
-});
 
 afterEach(() => {
   clearMockRes();
 });
-//#endregion Test Suite Setup
 
 describe('Forums Controller POST', () => {
   afterEach(() => {
@@ -28,8 +26,9 @@ describe('Forums Controller POST', () => {
 
   test('When provided forum data is valid, expect response to be success', async () => {
     // Arrange
+    const username = 'r.janvan001';
     const forumData = {
-      name: 'new name or topic',
+      topic: 'new name or topic',
       description: 'Changes on arch',
       isPrivate: false,
     };
@@ -37,7 +36,7 @@ describe('Forums Controller POST', () => {
       body: {
         ...forumData,
       },
-      user: { username: 'r.janvan001' },
+      user: { username },
     });
 
     const mockAddForum = {
@@ -46,7 +45,11 @@ describe('Forums Controller POST', () => {
       participants: [],
       ...forumData,
     };
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
     ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
+    ParticipantsRepository.prototype.add = jest.fn(async () => ({ username }));
 
     const expectedPayload = {
       ...mockAddForum,
@@ -75,9 +78,9 @@ describe('Forums Controller POST', () => {
     const expectedResponse = {
       statusCode: 400,
       fields: [
-        `Field 'name' is not a string`,
-        `Field 'description' is not a string`,
-        `Field 'isPrivate' is not a valid boolean`,
+        `Field 'topic' expected to be nonEmptyString. Got: ${forumData.topic}`,
+        `Field 'description' expected to be nonEmptyString. Got: ${forumData.description}`,
+        `Field 'isPrivate' expected to be Boolean. Got: ${forumData.isPrivate}`,
       ],
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
@@ -91,10 +94,51 @@ describe('Forums Controller POST', () => {
     expect(response).toMatchObject(expectedResponse);
   });
 
+  test('When creating the forum participant fails, expect forum creation to rollback', async () => {
+    // Arrange
+    const username = 'r.janvan001';
+    const forumData = {
+      topic: 'new forum topic',
+      description: 'Additional test scenario for this forum data',
+      isPrivate: true,
+    };
+    const req = getMockReq({
+      body: {
+        ...forumData,
+      },
+      user: { username },
+    });
+
+    const mockAddForum = {
+      id: 'someRandomId019475',
+      createDate: Date.now(),
+      participants: [],
+      ...forumData,
+    };
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
+    ForumsRepository.prototype.add = jest.fn(async () => mockAddForum);
+    ParticipantsRepository.prototype.add = jest.fn(async () => null);
+    ForumsRepository.prototype.remove = jest.fn(async () => mockAddForum);
+
+    // Act
+    const response = await forumsController.post(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      payload: null,
+      statusCode: 422,
+      fields: [],
+      errorMessage: 'Cannot add participant on forum',
+      message: 'Unprocessable_Entity',
+    });
+  });
+
   test('When forums repo fails on adding a forum, expect to catch the error', async () => {
     // Arrange
     const forumData = {
-      name: 'Topic for this one',
+      topic: 'Topic for this one',
       description: 'This is a description',
       isPrivate: true,
     };
@@ -112,6 +156,9 @@ describe('Forums Controller POST', () => {
     };
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: 'Some1235idv7v6gdfhg98',
+    }));
     ForumsRepository.prototype.add = jest.fn(async () => {
       throw new Error(errorMessage);
     });
@@ -122,4 +169,110 @@ describe('Forums Controller POST', () => {
     // Assert
     expect(response).toMatchObject(expectedResponse);
   });
+});
+
+describe('Forums Controller GET by filters', () => {
+  afterEach(() => {
+    ForumsRepository.prototype.find.mockReset();
+  });
+
+  test('When valid filters are provided, expect response to be successful', async () => {
+    // Arrange
+    const req = getMockReq({
+      query: {
+        page: 1,
+        pageSize: 15,
+      },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+    });
+  });
+
+  test('When page param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const page = 'TwentyOne';
+    const req = getMockReq({
+      query: { page },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'page' expected to be Numeric. Got: ${page}`],
+    });
+  });
+
+  test('When pageSize param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const pageSize = 'TwentyTwo';
+    const req = getMockReq({
+      query: { pageSize },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'pageSize' expected to be Numeric. Got: ${pageSize}`],
+    });
+  });
+
+  test('When isActive param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const isActive = 'Yes, please';
+    const req = getMockReq({
+      query: { isActive },
+    });
+
+    // mocks
+    ForumsRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await forumsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'isActive' expected to be Boolean. Got: ${isActive}`],
+    });
+  });
+
+  // TODO -> pending test scenarios
+  // until validator V2 is developed and implemented.
+  // ('When author param is invalid, expect a validation error on response');
+  // ('When topic param is invalid, expect a validation error on response');
+  // ('When sortBy param is invalid, expect a validation error on response');
+  // ('When sortOrder param is invalid, expect a validation error on response');
 });

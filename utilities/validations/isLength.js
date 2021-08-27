@@ -1,10 +1,11 @@
 const validator = require('validator');
 const executeValidator = require('../../common/processors/errorManager/executeValidator');
 
-module.exports = (value, key) =>
+module.exports = (value, key, opts) => {
   executeValidator(
     value,
     key,
-    'Boolean',
-    () => !validator.isBoolean(value.toString())
+    `length ${JSON.stringify(opts)}`,
+    () => !validator.isLength(value, opts)
   );
+};

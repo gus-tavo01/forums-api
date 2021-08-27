@@ -1,20 +1,19 @@
-const Model = require('../models/Forum');
-// mappers
-const mapForums = require('../utilities/mappers/forums');
+const Forum = require('../models/Forum');
+const BaseRepository = require('./Base.Repository');
 const mapForum = require('../utilities/mappers/forum');
+const mapForums = require('../utilities/mappers/forums');
 
-class ForumsRepository {
-  add = async (forum) => {
-    const newForum = await new Model(forum).save();
-    return mapForum(newForum);
-  };
+class ForumsRepository extends BaseRepository {
+  constructor() {
+    super(Forum, mapForum);
+  }
 
   find = async (filters) => {
     const filter = {};
     const options = {};
 
-    if (filters.name) {
-      filter.name = new RegExp(`.*${filters.name}.*`, 'i');
+    if (filters.topic) {
+      filter.topic = new RegExp(`.*${filters.topic}.*`, 'i');
     }
 
     if (filters.author) {
@@ -23,6 +22,10 @@ class ForumsRepository {
 
     if (filters.public !== undefined) {
       filter.isPrivate = !filters.public;
+    }
+
+    if (filters.isActive !== undefined) {
+      filter.isActive = filters.isActive;
     }
 
     if (filters.page) {
@@ -39,23 +42,8 @@ class ForumsRepository {
       };
     }
 
-    const forumsList = await Model.paginate(filter, options);
+    const forumsList = await Forum.paginate(filter, options);
     return mapForums(forumsList);
-  };
-
-  findById = async (id) => {
-    const forum = await Model.findById(id);
-    return mapForum(forum);
-  };
-
-  remove = async (id) => {
-    const removedForum = await Model.findByIdAndDelete(id);
-    return mapForum(removedForum);
-  };
-
-  modify = async (id, patch) => {
-    const forum = await Model.findByIdAndUpdate(id, patch, { new: true });
-    return mapForum(forum);
   };
 }
 

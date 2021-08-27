@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose');
 
-const LoginSchema = new Schema({
+const AccountSchema = new Schema({
   username: {
     type: String,
     required: true,
@@ -9,18 +9,23 @@ const LoginSchema = new Schema({
     type: String,
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
   createDate: {
     type: Date,
     required: false,
     default: Date.now,
   },
-  updatedDate: {
+  updateDate: {
     type: Date,
     required: false,
     default: null,
   },
 });
 
-const Login = model('Login', LoginSchema);
+const Account = model('Account', AccountSchema);
 
-module.exports = Login;
+module.exports = Account;

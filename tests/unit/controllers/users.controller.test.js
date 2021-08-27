@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { res, clearMockRes } = require('../helpers/mockResponse')();
+const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const UsersController = require('../../../controllers/Users.Controller');
 const UsersRepository = require('../../../repositories/Users.Repository');
@@ -40,8 +40,7 @@ describe('Users Controller GET', () => {
       statusCode: 200,
       errorMessage: null,
       fields: [],
-      // message: 'Ok',
-      // message: 'Success',
+      message: 'Ok',
       payload: expectedUsers,
     });
   });

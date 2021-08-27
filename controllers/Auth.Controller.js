@@ -3,15 +3,26 @@ const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
-const LoginsService = require('../services/Logins.Service');
-const UsersService = require('../services/Users.Service');
+// repositories
+const AccountsRepository = require('../repositories/Accounts.Repository');
+const UsersRepository = require('../repositories/Users.Repository');
+// validators
+const validations = require('../utilities/validations');
+const {
+  validate,
+  executeValidations,
+} = require('../common/processors/errorManager');
+const postAccountValidator = require('../utilities/validators/post.account.validator');
+const loginValidator = require('../utilities/validators/login.validator');
 
 // api/v0/auth
 class AuthController {
   constructor() {
     this.router = Router();
-    this.loginsService = new LoginsService();
-    this.usersService = new UsersService();
+
+    // unit of work
+    this.accountsRepo = new AccountsRepository();
+    this.usersRepo = new UsersRepository();
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
@@ -22,43 +33,46 @@ class AuthController {
     const { username, password } = req.body;
     const apiResponse = new ApiResponse();
     try {
-      const serviceResponse = await this.loginsService.findByUsername(username);
-      if (serviceResponse.fields.length) {
-        apiResponse.badRequest(
-          'Invalid username field',
-          serviceResponse.fields
-        );
+      // Step validate entity
+      const { isValid, fields } = await validate(req.body, loginValidator);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
       }
 
-      if (!serviceResponse.result) {
+      // Step get user account
+      const foundAccount = await this.accountsRepo.findByUsername(username);
+      if (!foundAccount) {
         apiResponse.unauthorized('Invalid credentials');
         return res.response(apiResponse);
       }
-      const account = serviceResponse.result;
+
+      // Step verify passwords match
       const passwordMatch = await bcrypt.compare(
         password,
-        account.passwordHash
+        foundAccount.passwordHash
       );
       if (!passwordMatch) {
         apiResponse.unauthorized('Invalid credentials');
         return res.response(apiResponse);
       }
 
+      // Step generate access token
       const secret = process.env.JWT_SECRET;
       const expInMins = process.env.TOKEN_EXPIRATION;
       const expiresIn = Math.floor(Date.now() / 1000) + expInMins * 60;
-      const payload = {
-        iat: Date.now(),
-        sub: account.id,
-        exp: expiresIn,
-      };
-      const token = jsonwebtoken.sign(payload, secret);
-      const result = {
+      const token = jsonwebtoken.sign(
+        {
+          iat: Date.now(),
+          sub: foundAccount.id,
+          exp: expiresIn,
+        },
+        secret
+      );
+      apiResponse.ok({
         token,
         expiresIn: `${expInMins} Minutes`,
-      };
-      apiResponse.ok(result);
+      });
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
@@ -68,16 +82,35 @@ class AuthController {
   register = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { username, email, dateOfBirth, password } = req.body;
+      const { username, email, password, dateOfBirth } = req.body;
 
-      // TODO
-      // validate request body here
-      // generate fields array
+      // Step validate input fields
+      const { isValid, fields } = await validate(
+        req.body,
+        postAccountValidator
+      );
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
-      // Step find username if already exist
-      const getUserResponse = await this.loginsService.findByUsername(username);
-      if (getUserResponse.result) {
-        apiResponse.conflict('This username already exists');
+      // Step validate account does not exist yet
+      const foundAccount = await this.accountsRepo.findByUsername(username);
+      if (foundAccount) {
+        apiResponse.conflict('This account already exists');
+        return res.response(apiResponse);
+      }
+
+      // Step create user profile
+      const createdProfile = await this.usersRepo.add({
+        username,
+        email,
+        dateOfBirth,
+      });
+      if (!createdProfile) {
+        apiResponse.unprocessableEntity(
+          'User profile cannot be created, please try again later'
+        );
         return res.response(apiResponse);
       }
 
@@ -86,38 +119,21 @@ class AuthController {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Step create login account
-      const login = { username, passwordHash };
-      const createLoginResponse = await this.loginsService.create(login);
-      if (createLoginResponse.fields.length) {
-        apiResponse.badRequest(
-          'You have some errors',
-          createLoginResponse.fields
-        );
-        return res.response(apiResponse);
-      }
-      if (!createLoginResponse.result) {
+      const createdAccount = await this.accountsRepo.add({
+        username,
+        passwordHash,
+      });
+      if (!createdAccount) {
+        // Step rollback user profile
+        await this.usersRepo.remove(createdProfile.id);
         apiResponse.unprocessableEntity(
           'Login account cannot be created, please try again later'
         );
         return res.response(apiResponse);
       }
-
-      // Step create user profile
-      const user = { username, email, dateOfBirth };
-      const createUserResponse = await this.usersService.add(user);
-      if (createUserResponse.fields.length) {
-        apiResponse.badRequest('Check for errors', createUserResponse.fields);
-        return res.response(apiResponse);
-      }
-      if (!createUserResponse.result) {
-        apiResponse.unprocessableEntity(
-          'User cannot be created, please try again later'
-        );
-        return res.response(apiResponse);
-      }
-      apiResponse.created(createUserResponse.result);
+      apiResponse.created(createdAccount.username);
     } catch (error) {
-      apiResponse.internalServerError(error);
+      apiResponse.internalServerError(error.message);
     }
     return res.response(apiResponse);
   };
@@ -126,30 +142,32 @@ class AuthController {
     const apiResponse = new ApiResponse();
     try {
       // logged in user
-      const { user } = req;
+      const { username: requesterUsername, id: requestorUserId } = req.user;
       const { userId } = req.params;
       const { password } = req.body;
 
-      // TODO:
-      // validate password criteria
+      // Step validate request data
+      const { isValid, fields } = await executeValidations([
+        validations.isEmpty(password, 'password'),
+        validations.isEmpty(userId, 'userId'),
+        validations.isMongoId(userId, 'userId'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step get user
-      const getUserResponse = await this.usersService.getById(userId);
-      if (getUserResponse.fields.length) {
-        apiResponse.badRequest('Invalid user id provided');
+      const foundUserProfile = await this.usersRepo.findById(userId);
+      if (!foundUserProfile) {
+        apiResponse.notFound('User is not found');
         return res.response(apiResponse);
       }
-      if (!getUserResponse.result) {
-        apiResponse.notFound('User is not found :o');
-        return res.response(apiResponse);
-      }
-      const { username } = getUserResponse.result;
+      const { username: targetUsername } = foundUserProfile;
 
-      // Step validate it is a self pwd reset
-      if (user.username !== username) {
-        apiResponse.forbidden(
-          'Current user does not have permissions to perform this action'
-        );
+      // Step validate if is self pwd reset
+      if (requesterUsername !== targetUsername) {
+        apiResponse.forbidden('Cannot update another users password');
         return res.response(apiResponse);
       }
 
@@ -158,22 +176,17 @@ class AuthController {
       const passwordHash = await bcrypt.hash(password, salt);
 
       // Step update account password
-      const updatePwd = { passwordHash };
-      const updatePwdResponse = await this.loginsService.update(
-        user.id,
-        updatePwd
-      );
-      if (updatePwdResponse.fields.length) {
-        apiResponse.badRequest('Invalid password bro');
-        return res.response(apiResponse);
-      }
-      if (!updatePwdResponse.result) {
+      const updatedAccount = await this.accountsRepo.modify(requestorUserId, {
+        passwordHash,
+      });
+      if (!updatedAccount) {
+        // Step validate update process was successful
         apiResponse.unprocessableEntity(
           'Cannot update the password, try again later'
         );
         return res.response(apiResponse);
       }
-      apiResponse.ok('Password has been reset successfully');
+      apiResponse.ok(targetUsername);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
