@@ -39,12 +39,6 @@ class ParticipantsController {
         params: { forumId },
       } = req;
 
-      // Step validate auth user
-      if (!requestorUser) {
-        apiResponse.unauthorized('Authentication required');
-        return res.response(apiResponse);
-      }
-
       // Step validate request data
       const [
         { isValid: isModelValid, fields: modelFields },
@@ -159,8 +153,14 @@ class ParticipantsController {
 
       // Step replace current operator by the provided one
       if (body.role === Roles.operator) {
+        // Step get current forum operator
+        [currentOperator] = await this.participantsRepo.find({
+          forumId,
+          role: Roles.operator,
+        });
+
         const updateRequestor = await this.participantsRepo.modify(
-          requestorParticipant.id,
+          currentOperator.id,
           {
             role: Roles.administrator,
           }
@@ -185,7 +185,7 @@ class ParticipantsController {
         );
         if (body.role === Roles.operator) {
           // Step rollback update current Operator
-          await this.participantsRepo.modify(requestorParticipant.id, {
+          await this.participantsRepo.modify(currentOperator.id, {
             role: Roles.operator,
           });
         }
@@ -204,7 +204,7 @@ class ParticipantsController {
         await this.participantsRepo.remove(addedParticipant.id);
         if (body.role === Roles.operator) {
           // Step rollback current Operator update
-          await this.participantsRepo.modify(requestorParticipant.id, {
+          await this.participantsRepo.modify(currentOperator.id, {
             role: Roles.operator,
           });
         }
@@ -221,7 +221,7 @@ class ParticipantsController {
     const apiResponse = new ApiResponse();
     try {
       const {
-        user: requestorUser,
+        user: { username: requestorUsername },
         params: { forumId, userId },
       } = req;
 
@@ -238,17 +238,15 @@ class ParticipantsController {
       }
 
       // Step get requestor user
-      const requestorUserProfile = await this.usersRepo.findByUsername(
-        requestorUser.username
-      );
-      if (!requestorUserProfile) {
+      const requestor = await this.usersRepo.findByUsername(requestorUsername);
+      if (!requestor) {
         apiResponse.unprocessableEntity('Cannot get user profile');
         return res.response(apiResponse);
       }
 
       // Step get requestor role
       const requestorParticipant = await this.participantsRepo.findByUserAndForum(
-        requestorUserProfile.id,
+        requestor.id,
         forumId
       );
       if (!requestorParticipant) {
@@ -268,11 +266,12 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
-      // Step validate requestor role is authorized
+      // Step validate requestor is authorized to perform the request
+      const isSelfRequest = sourceParticipant.username === requestorUsername;
       const isAuthorized = [Roles.operator, Roles.administrator].some(
         (r) => r === requestorParticipant.role
       );
-      if (!isAuthorized) {
+      if (!isAuthorized && !isSelfRequest) {
         apiResponse.forbidden(
           'Requestor role does not have sufficient permissions'
         );
@@ -285,16 +284,9 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
-      // Step get source user
-      const sourceUser = await this.usersRepo.findById(userId);
-      if (!sourceUser) {
-        apiResponse.unprocessableEntity('Invalid participant');
-        return res.response(apiResponse);
-      }
-
       // Step get source account
       const sourceUserAccount = await this.accountsRepo.findByUsername(
-        sourceUser.username
+        sourceParticipant.username
       );
       if (!sourceUserAccount || !sourceUserAccount.isActive) {
         apiResponse.unprocessableEntity('Invalid participant');
@@ -303,7 +295,7 @@ class ParticipantsController {
 
       // Step get target forum
       const targetForum = await this.forumsRepo.findById(forumId);
-      if (!targetForum || !targetForum.isActive) {
+      if (!targetForum) {
         apiResponse.unprocessableEntity('Invalid forum');
         return res.response(apiResponse);
       }
@@ -340,6 +332,7 @@ class ParticipantsController {
       apiResponse.ok(removedParticipant.username);
     } catch (error) {
       apiResponse.internalServerError(error.message);
+      console.log(error);
     }
     return res.response(apiResponse);
   };
