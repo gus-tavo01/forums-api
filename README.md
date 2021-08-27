@@ -43,10 +43,6 @@ Restful API for forums management
   - CRUD E2E operations
   - No mocked dependencies (except express js)
 
-## Testing todos (remove later)
-
-- Participants controller DELETE endpoint unit tests
-
 ## Tech doubt
 
 ### BE Validator
