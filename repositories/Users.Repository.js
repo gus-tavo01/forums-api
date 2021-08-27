@@ -9,7 +9,7 @@ class UsersRepository extends RepositoryBase {
   }
 
   findByUsername = async (username) => {
-    const user = await User.find({ username });
+    const user = await User.findOne({ username });
     return mapProfile(user);
   };
 
