@@ -179,17 +179,22 @@ describe('Participants Controller POST', () => {
   // #region broken
   test('When requestor is not a forum member, expect a 403 response', async () => {
     // Arrange
-    const username = 'testerDeveloper001';
-    const participantData = { username: 'ticky.perez', role: 'Participant' };
-    const requestor = { username, role: 'Operator' };
+    const source = { username: 'ticky.perez', role: 'Participant' };
+    const requestor = {
+      username: 'testerDeveloper001',
+      userId: '610ee6890a25e341708f1999',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
-      body: participantData,
+      body: { username: source.username, role: source.role },
       user: requestor,
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn(
       async () => null
     );
@@ -202,28 +207,34 @@ describe('Participants Controller POST', () => {
       payload: null,
       statusCode: 403,
       message: 'Forbidden',
-      errorMessage: `${username} is not a member of this forum`,
+      errorMessage: `${requestor.username} is not a member of this forum`,
       fields: [],
     });
   });
 
   test('When target user role is invalid, expect a 422 response', async () => {
     // Arrange
-    const username = 'unit.test003';
-    const participantData = { username: 'yayis.loera', role: 'Obispo' };
-    const requestor = { username, role: 'Operator' };
+    const username = 'Unit.Test003';
+    const source = { username: 'yayis.loera', role: 'Obispo' };
+    const requestor = {
+      username,
+      role: 'Operator',
+      userId: '610ee6890a25e341708fasdfsg4356',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
-      body: participantData,
-      user: requestor,
+      body: { username: source.username, role: source.role },
+      user: { username: requestor.username },
     });
 
     // mocks
-    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
-    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
       role: requestor.role,
-    });
+    }));
 
     // Act
     const apiResponse = await participantsController.post(req, res);
@@ -233,27 +244,28 @@ describe('Participants Controller POST', () => {
       payload: null,
       statusCode: 422,
       message: 'Unprocessable_Entity',
-      errorMessage: `Forum participant role: '${participantData.role}' is incorrect`,
+      errorMessage: `Forum participant role: '${source.role}' is incorrect`,
       fields: [],
     });
   });
 
   test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {
     // Arrange
-    const username = 'anyone01';
-    const participantData = { username: 'any.one', role: Roles.operator };
-    const requestor = { username, role: Roles.administrator };
+    const source = { username: 'any.one', role: Roles.operator };
+    const requestor = { username: 'anyone01', role: Roles.administrator };
     const req = getMockReq({
       params: { forumId: '610ee6890a25e341708f1706' },
-      body: participantData,
-      user: requestor,
+      body: { username: source.username, role: source.role },
+      user: { username: requestor.username },
     });
 
     // mocks
-    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
-    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
       role: requestor.role,
-    });
+    }));
 
     // Act
     const apiResponse = await participantsController.post(req, res);
@@ -263,7 +275,7 @@ describe('Participants Controller POST', () => {
       payload: null,
       statusCode: 403,
       message: 'Forbidden',
-      errorMessage: `${username} is not the current forum operator`,
+      errorMessage: `${requestor.username} is not the current forum operator`,
       fields: [],
     });
   });
@@ -271,25 +283,28 @@ describe('Participants Controller POST', () => {
   test('When request is an operator transfer and request is valid, expect to be success', async () => {
     // Arrange
     const forumId = '610ee6890a25e341708f1706';
-    const participantData = {
-      username: 'old.operator',
+    const source = {
+      username: 'Current.Operator',
       role: Roles.operator,
       userId: '610ee6899a25e341708f1209',
     };
-    const requestorData = { username: 'newOperator002', role: Roles.operator };
+    const requestor = { username: 'newOperator002', role: Roles.operator };
     const req = getMockReq({
       params: { forumId },
-      body: participantData,
-      user: { username: requestorData.username },
+      body: { username: source.username, role: source.role },
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
-      role: requestorData.role,
+      role: requestor.role,
     });
     AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
-      id: participantData.userId,
+      id: source.userId,
       isActive: true,
     }));
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce(
@@ -304,7 +319,7 @@ describe('Participants Controller POST', () => {
       role: Roles.operator,
     }));
     ParticipantsRepository.prototype.add = jest.fn(async () => ({
-      ...participantData,
+      ...source,
       forumId,
     }));
     ForumsRepository.prototype.modify = jest.fn(async () => ({
@@ -319,7 +334,7 @@ describe('Participants Controller POST', () => {
     expect(apiResponse).toMatchObject({
       payload: {
         forumId,
-        ...participantData,
+        ...source,
       },
       statusCode: 200,
       message: 'Ok',
@@ -344,6 +359,9 @@ describe('Participants Controller POST', () => {
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestorData.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestorData.role,
@@ -383,16 +401,23 @@ describe('Participants Controller POST', () => {
   test('When source account is not found, expect a 422 response', async () => {
     // Arrange
     const username = 'developer002';
-    const participantData = { username: 'yayis.loera', role: 'Viewer' };
-    const requestor = { username, role: 'Operator' };
+    const source = { username: 'yayis.loera', role: Roles.viewer };
+    const requestor = {
+      username,
+      role: 'Operator',
+      userId: '610ab6890a25e341708f1306',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
-      body: participantData,
-      user: requestor,
+      body: { username: source.username, role: source.role },
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -415,16 +440,23 @@ describe('Participants Controller POST', () => {
   test('When source account is inactive, expect a 422 response', async () => {
     // Arrange
     const username = 'developer002';
-    const participantData = { username: 'yayis.loera', role: 'Viewer' };
-    const requestor = { username, role: 'Operator' };
+    const source = { username: 'yayis.loera', role: 'Viewer' };
+    const requestor = {
+      username,
+      role: 'Operator',
+      userId: '610ee6890a25e341708f1997',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
-      body: participantData,
-      user: requestor,
+      body: { username: source.username, role: source.role },
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -448,18 +480,27 @@ describe('Participants Controller POST', () => {
 
   test('When source user is already a forum member, expect a 409 response', async () => {
     // Arrange
-    const username = 'developer002';
-    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const participantData = { username: 'yayis.loera', role: Roles.viewer };
     const userId = '610ee6890a25e341708f1111';
-    const requestor = { username, role: 'Operator' };
+    const requestor = {
+      username: 'Developer002',
+      role: Roles.administrator,
+      userId: '610ee6890a25e341708f1705',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
       body: participantData,
-      user: requestor,
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -488,18 +529,24 @@ describe('Participants Controller POST', () => {
 
   test('When target forum is not found, expect a 422 response', async () => {
     // Arrange
-    const username = 'developer002';
-    const participantData = { username: 'yayis.loera', role: 'Viewer' };
+    const participantData = { username: 'yayis.loera', role: Roles.viewer };
     const userId = '610ee6890a25e341708f1111';
-    const requestor = { username, role: 'Operator' };
+    const requestor = {
+      username: 'developer002',
+      role: Roles.operator,
+      userId: '610ee6890a25e3134v08f1706',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
       body: participantData,
-      user: requestor,
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -528,21 +575,27 @@ describe('Participants Controller POST', () => {
 
   test('When target forum is inactive on normal request, expect a 422 response', async () => {
     // Arrange
-    const username = 'developer002';
     const participantData = {
       username: 'yayis.loera',
       role: Roles.participant,
     };
     const userId = '610ee6890a25e341708f1111';
-    const requestor = { username, role: Roles.operator };
+    const requestor = {
+      username: 'developer004',
+      role: Roles.operator,
+      userId: 'adasdasbvbn77f7dfbd7f6g',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
       body: participantData,
-      user: requestor,
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -580,15 +633,22 @@ describe('Participants Controller POST', () => {
       role: Roles.administrator,
     };
     const userId = '610ee6890a25e341708f1111';
-    const requestor = { username, role: 'Operator' };
+    const requestor = {
+      username,
+      role: 'Operator',
+      userId: '76sdf75dfg765dfg765dgf756',
+    };
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
       body: participantData,
-      user: requestor,
+      user: { username: requestor.username },
     });
 
     // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
     ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
       role: requestor.role,
@@ -625,7 +685,6 @@ describe('Participants Controller POST', () => {
       fields: [],
     });
   });
-  // #endregion broken
 });
 
 describe('Participants Controller DELETE', () => {
@@ -1075,7 +1134,128 @@ describe('Participants Controller DELETE', () => {
     });
   });
 
-  // test('When the participant is not removed, expect a 422 response', async () => {});
+  test('When the participant is not removed, expect a 422 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const targetParticipant = {
+      participantId: '650ee6890a25e341708f3000',
+      userId: '650ee6890a25e341708f1505',
+      username: 'Will.Remove',
+      role: Roles.participant,
+    };
+    const requestor = {
+      userId: '650bb6890a25a341408f1705',
+      username: 'Unit.User',
+      role: Roles.operator,
+    };
+    const req = getMockReq({
+      params: { userId: targetParticipant.participantId, forumId },
+      user: {
+        username: requestor.username,
+      },
+    });
 
-  // test('When target forum is not updated, expect process to be rollback', async () => {});
+    // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    ParticipantsRepository.prototype.findById = jest.fn(async () => ({
+      id: targetParticipant.participantId,
+      username: targetParticipant.username,
+      role: targetParticipant.role,
+      avatar: null,
+      userId: targetParticipant.userId,
+    }));
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      username: targetParticipant.username,
+      isActive: true,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: true,
+      participants: 25,
+    }));
+    ParticipantsRepository.prototype.remove = jest.fn(async () => null);
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      fields: [],
+      errorMessage: 'Cannot remove the participant, please try again later',
+      message: 'Unprocessable_Entity',
+      payload: null,
+    });
+  });
+
+  test('When target forum is not updated, expect process to be rollback', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const target = {
+      participantId: '650ee6890a25e341708f3000',
+      userId: '650ee6890a25e341708f1505',
+      username: 'Will.Remove',
+      role: Roles.participant,
+    };
+    const requestor = {
+      userId: '650bb6890a25a341408f1705',
+      username: 'Unit.User',
+      role: Roles.operator,
+    };
+    const req = getMockReq({
+      params: { userId: target.participantId, forumId },
+      user: {
+        username: requestor.username,
+      },
+    });
+
+    // mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestor.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn();
+    ParticipantsRepository.prototype.findByUserAndForum.mockResolvedValueOnce({
+      role: requestor.role,
+    });
+    ParticipantsRepository.prototype.findById = jest.fn(async () => ({
+      id: target.participantId,
+      username: target.username,
+      role: target.role,
+      avatar: null,
+      userId: target.userId,
+    }));
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => ({
+      username: target.username,
+      isActive: true,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isActive: true,
+      participants: 25,
+    }));
+    ParticipantsRepository.prototype.remove = jest.fn(async () => ({
+      username: target.username,
+    }));
+    ForumsRepository.prototype.modify = jest.fn(async () => null);
+    ParticipantsRepository.prototype.add = jest.fn();
+
+    // Act
+    const response = await participantsController.delete(req, res);
+
+    // Assert
+    expect(ParticipantsRepository.prototype.add).toHaveBeenCalled();
+    expect(response).toMatchObject({
+      statusCode: 422,
+      fields: [],
+      errorMessage: 'Cannot update the forum, please try again later',
+      message: 'Unprocessable_Entity',
+      payload: null,
+    });
+  });
 });
