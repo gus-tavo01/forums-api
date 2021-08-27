@@ -222,15 +222,15 @@ class ParticipantsController {
     try {
       const {
         user: { username: requestorUsername },
-        params: { forumId, userId },
+        params: { forumId, userId: participantId },
       } = req;
 
       // Step validate request data
       const { isValid, fields } = await executeValidations([
         validations.isEmpty(forumId, 'forumId'),
         validations.isMongoId(forumId, 'forumId'),
-        validations.isEmpty(userId, 'userId'),
-        validations.isMongoId(userId, 'userId'),
+        validations.isEmpty(participantId, 'participantId'),
+        validations.isMongoId(participantId, 'participantId'),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -255,14 +255,11 @@ class ParticipantsController {
       }
 
       // Step get target participant
-      const sourceParticipant = await this.participantsRepo.findByUserAndForum(
-        userId,
-        forumId
+      const sourceParticipant = await this.participantsRepo.findById(
+        participantId
       );
       if (!sourceParticipant) {
-        apiResponse.notFound(
-          `${sourceUserAccount.username} is not member of this forum`
-        );
+        apiResponse.notFound(`${participantId} is not member of this forum`);
         return res.response(apiResponse);
       }
 
