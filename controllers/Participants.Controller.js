@@ -149,18 +149,10 @@ class ParticipantsController {
         return res.response(apiResponse);
       }
 
-      let currentOperator;
-
       // Step replace current operator by the provided one
       if (body.role === Roles.operator) {
-        // Step get current forum operator
-        [currentOperator] = await this.participantsRepo.find({
-          forumId,
-          role: Roles.operator,
-        });
-
         const updateRequestor = await this.participantsRepo.modify(
-          currentOperator.id,
+          requestorParticipant.id,
           {
             role: Roles.administrator,
           }
@@ -185,7 +177,7 @@ class ParticipantsController {
         );
         if (body.role === Roles.operator) {
           // Step rollback update current Operator
-          await this.participantsRepo.modify(currentOperator.id, {
+          await this.participantsRepo.modify(requestorParticipant.id, {
             role: Roles.operator,
           });
         }
@@ -204,7 +196,7 @@ class ParticipantsController {
         await this.participantsRepo.remove(addedParticipant.id);
         if (body.role === Roles.operator) {
           // Step rollback current Operator update
-          await this.participantsRepo.modify(currentOperator.id, {
+          await this.participantsRepo.modify(requestorParticipant.id, {
             role: Roles.operator,
           });
         }
