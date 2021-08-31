@@ -6,8 +6,11 @@ const AuthController = require('../../../controllers/Auth.Controller');
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
 const UsersRepository = require('../../../repositories/Users.Repository');
 
+const EmailsService = require('../../../services/Emails.Service');
+
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
+jest.mock('../../../services/Emails.Service');
 
 const authController = new AuthController();
 
@@ -215,17 +218,20 @@ describe('Auth controller register', () => {
 
     // mocks
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+    UsersRepository.prototype.find = jest.fn(async () => []);
     UsersRepository.prototype.add = jest.fn(async () => ({
       id: userId,
     }));
     AccountsRepository.prototype.add = jest.fn(async () => ({
       username,
     }));
+    EmailsService.prototype.send = jest.fn(async () => null);
 
     // Act
     const response = await authController.register(req, res);
 
     // Assert
+    expect(EmailsService.prototype.send).toHaveBeenCalled();
     expect(response).toMatchObject({
       statusCode: 201,
       message: 'Created',
@@ -254,6 +260,37 @@ describe('Auth controller register', () => {
     AccountsRepository.prototype.findByUsername = jest.fn(
       async () => mockAccount
     );
+    UsersRepository.prototype.find = jest.fn(async () => []);
+
+    // Act
+    const response = await authController.register(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 409,
+      payload: null,
+      message: 'Conflict',
+    });
+  });
+
+  test('When the email is in use, expect a 409 http response', async () => {
+    // Arrange
+    const username = 'tickYayis';
+    const req = getMockReq({
+      body: {
+        username,
+        password: 'password!',
+        email: 'tiktok@gmail.com',
+        dateOfBirth: '2010-10-21',
+      },
+    });
+
+    AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+    UsersRepository.prototype.find = jest.fn(async () => [
+      {
+        username,
+      },
+    ]);
 
     // Act
     const response = await authController.register(req, res);
@@ -384,6 +421,7 @@ describe('Auth controller register', () => {
 
     // mocks
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
+    UsersRepository.prototype.find = jest.fn(async () => []);
     UsersRepository.prototype.add = jest.fn(async () => ({
       id: 'ertuasd1344235sdf4',
     }));
@@ -416,6 +454,7 @@ describe('Auth controller register', () => {
       },
     });
 
+    UsersRepository.prototype.find = jest.fn(async () => []);
     AccountsRepository.prototype.findByUsername = jest.fn(async () => {
       throw new Error(erre);
     });
