@@ -3,9 +3,12 @@ const jsonwebtoken = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
-// repositories
+
 const AccountsRepository = require('../repositories/Accounts.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
+
+const EmailsService = require('../services/Emails.Service');
+
 // validators
 const validations = require('../utilities/validations');
 const {
@@ -23,6 +26,8 @@ class AuthController {
     // unit of work
     this.accountsRepo = new AccountsRepository();
     this.usersRepo = new UsersRepository();
+
+    this.emailsService = new EmailsService();
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
@@ -95,9 +100,13 @@ class AuthController {
       }
 
       // Step validate account does not exist yet
-      const foundAccount = await this.accountsRepo.findByUsername(username);
-      if (foundAccount) {
-        apiResponse.conflict('This account already exists');
+      const [foundAccount, [foundEmailUser]] = await Promise.all([
+        this.accountsRepo.findByUsername(username),
+        this.usersRepo.find({ email }),
+      ]);
+      if (foundAccount || foundEmailUser) {
+        const apiErr = foundAccount ? 'Username' : 'Email';
+        apiResponse.conflict(`This ${apiErr} is already on use`);
         return res.response(apiResponse);
       }
 
@@ -132,6 +141,14 @@ class AuthController {
         return res.response(apiResponse);
       }
       apiResponse.created(createdAccount.username);
+
+      const emailContent = {
+        to: email,
+        from: process.env.APP_EMAIL,
+        subject: 'Welcome to Forums App!!',
+        message: `Hello ${username}! you have created a new account, please enjoy...`,
+      };
+      await this.emailsService.send(emailContent);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
