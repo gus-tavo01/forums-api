@@ -20,9 +20,6 @@ describe('EmailsService sendEmail', () => {
     // Act
     const response = await emailsService.send(emailData);
 
-    console.log('# email response');
-    console.log(response);
-
     // Assert
     expect(response).toHaveProperty('messageId');
   });
