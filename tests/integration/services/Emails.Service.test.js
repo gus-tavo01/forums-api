@@ -1,11 +1,10 @@
 require('dotenv').config();
 const EmailsService = require('../../../services/Emails.Service');
 
+const emailsService = new EmailsService();
 describe('EmailsService sendEmail', () => {
-  let emailsService;
   beforeAll(() => {
     jest.setTimeout = 15000;
-    emailsService = new EmailsService();
   });
 
   test('When content is text, expect to be successful', async () => {
@@ -13,14 +12,18 @@ describe('EmailsService sendEmail', () => {
     const emailData = {
       from: 'unit.test@mail.com',
       to: 'gustavoa.loera01@gmail.com',
-      subject: 'Test email',
+      subject: 'Gud provech',
       text: 'Hello Integration test',
+      html: '<div><h3>This is for testing</h3></div>',
     };
 
     // Act
     const response = await emailsService.send(emailData);
 
+    console.log('# email response');
+    console.log(response);
+
     // Assert
-    expect(response).toHaveProperty('message', 'Queued. Thank you.');
+    expect(response).toHaveProperty('messageId');
   });
 });
