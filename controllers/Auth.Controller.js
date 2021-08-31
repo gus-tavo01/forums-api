@@ -146,7 +146,7 @@ class AuthController {
         to: email,
         from: process.env.APP_EMAIL,
         subject: 'Welcome to Forums App!!',
-        message: `Hello ${username}! you have created a new account, please enjoy...`,
+        html: `<h2>Hello ${username}!</h2> you have created a new account, please enjoy...`,
       };
       await this.emailsService.send(emailContent);
     } catch (error) {
