@@ -49,3 +49,7 @@ describe('Users Controller GET', () => {
 
   // test('When email filter is invalid, expect a validation error');
 });
+
+// describe('Users Controller GetForums' , () => {
+//   test('When public filter is invalid, expect a validation error', async () => {});
+// });
