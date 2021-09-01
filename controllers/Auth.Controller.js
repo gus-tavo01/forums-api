@@ -100,11 +100,12 @@ class AuthController {
       }
 
       // Step validate account does not exist yet
-      const [foundAccount, [foundEmailUser]] = await Promise.all([
+      const [foundAccount, { docs: foundEmailUser }] = await Promise.all([
         this.accountsRepo.findByUsername(username),
         this.usersRepo.find({ email }),
       ]);
-      if (foundAccount || foundEmailUser) {
+
+      if (foundAccount || foundEmailUser.length) {
         const apiErr = foundAccount ? 'Username' : 'Email';
         apiResponse.conflict(`This ${apiErr} is already on use`);
         return res.response(apiResponse);
@@ -148,6 +149,7 @@ class AuthController {
         subject: 'Welcome to Forums App!!',
         html: `<h2>Hello ${username}!</h2> you have created a new account, please enjoy...`,
       };
+
       await this.emailsService.send(emailContent);
     } catch (error) {
       apiResponse.internalServerError(error.message);

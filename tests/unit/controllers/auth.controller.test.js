@@ -218,7 +218,7 @@ describe('Auth controller register', () => {
 
     // mocks
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
-    UsersRepository.prototype.find = jest.fn(async () => []);
+    UsersRepository.prototype.find = jest.fn(async () => ({ docs: [] }));
     UsersRepository.prototype.add = jest.fn(async () => ({
       id: userId,
     }));
@@ -260,7 +260,7 @@ describe('Auth controller register', () => {
     AccountsRepository.prototype.findByUsername = jest.fn(
       async () => mockAccount
     );
-    UsersRepository.prototype.find = jest.fn(async () => []);
+    UsersRepository.prototype.find = jest.fn(async () => ({ docs: [] }));
 
     // Act
     const response = await authController.register(req, res);
@@ -286,11 +286,13 @@ describe('Auth controller register', () => {
     });
 
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
-    UsersRepository.prototype.find = jest.fn(async () => [
-      {
-        username,
-      },
-    ]);
+    UsersRepository.prototype.find = jest.fn(async () => ({
+      docs: [
+        {
+          username,
+        },
+      ],
+    }));
 
     // Act
     const response = await authController.register(req, res);
@@ -421,7 +423,7 @@ describe('Auth controller register', () => {
 
     // mocks
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
-    UsersRepository.prototype.find = jest.fn(async () => []);
+    UsersRepository.prototype.find = jest.fn(async () => ({ docs: [] }));
     UsersRepository.prototype.add = jest.fn(async () => ({
       id: 'ertuasd1344235sdf4',
     }));
@@ -454,7 +456,7 @@ describe('Auth controller register', () => {
       },
     });
 
-    UsersRepository.prototype.find = jest.fn(async () => []);
+    UsersRepository.prototype.find = jest.fn(async () => ({ docs: [] }));
     AccountsRepository.prototype.findByUsername = jest.fn(async () => {
       throw new Error(erre);
     });
