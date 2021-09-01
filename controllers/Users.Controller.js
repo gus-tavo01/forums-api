@@ -18,7 +18,7 @@ class UsersController {
     // register endpoint routes
     this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
-    this.router.get('/:id/forums', useAuth, this.getPrivateForums);
+    this.router.get('/:id/forums', useAuth, this.getUserForums);
   }
 
   get = async (req, res) => {
@@ -76,7 +76,7 @@ class UsersController {
     return res.response(apiResponse);
   };
 
-  getPrivateForums = async (req, res) => {
+  getUserForums = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
@@ -93,8 +93,26 @@ class UsersController {
         author: user.username,
       };
 
-      // Step validate filters
-      // TODO
+      // Step validate request (filters, userId)
+      const { isValid, fields } = await executeValidations([
+        validations.isNumeric(filters.page, 'page'),
+        validations.isNumeric(filters.pageSize, 'pageSize'),
+        // TODO -> enable this validations when they are implemented
+        // validations.isOptional(filters.public, 'public'),
+        // validations.isBool(filters.public, 'public'),
+        // validations.isOptional(filters.isActive, 'isActive'),
+        // validations.isBool(filters.isActive, 'isActive'),
+        // validations.isOptional(filters.author, 'author'),
+        // validations.isEmpty(filters.author, 'author'),
+        // validations.isOptional(filters.topic, 'topic'),
+        // validations.isEmpty(filters.topic, 'topic'),
+        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
+        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step verify resource user id exist
       const foundUser = await this.usersRepo.findById(id);
@@ -103,9 +121,12 @@ class UsersController {
         return res.response(apiResponse);
       }
 
-      // Step validate auth user is is eq to resource id
-      if (user.username !== foundUser.username) {
-        apiResponse.forbidden('Cannot view other users forums');
+      // Step validate auth user has permissions to view
+      if (
+        user.username !== foundUser.username ||
+        user.username !== filters.author
+      ) {
+        apiResponse.forbidden('Cannot view other users private forums');
         return res.response(apiResponse);
       }
 
