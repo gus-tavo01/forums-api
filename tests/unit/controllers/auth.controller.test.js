@@ -2,15 +2,19 @@ require('dotenv').config();
 const { res, clearMockRes } = require('../../helpers/mockResponse')();
 const { getMockReq } = require('@jest-mock/express');
 const AuthController = require('../../../controllers/Auth.Controller');
-// repos
+
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
 const UsersRepository = require('../../../repositories/Users.Repository');
 
 const EmailsService = require('../../../services/Emails.Service');
+const CloudinaryService = require('../../../services/Cloudinary.Service');
+
+const { imageUrl } = require('../../helpers/mockImageUrl');
 
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
 jest.mock('../../../services/Emails.Service');
+jest.mock('../../../services/Cloudinary.Service');
 
 const authController = new AuthController();
 
@@ -209,6 +213,7 @@ describe('Auth controller register', () => {
     const username = 'paco.perez01';
     const req = getMockReq({
       body: {
+        avatar: imageUrl,
         username,
         email: 'pac.per@gmail.com',
         dateOfBirth: '2000-02-16',
@@ -219,6 +224,9 @@ describe('Auth controller register', () => {
     // mocks
     AccountsRepository.prototype.findByUsername = jest.fn(async () => null);
     UsersRepository.prototype.find = jest.fn(async () => ({ docs: [] }));
+    CloudinaryService.prototype.uploadImage = jest.fn(
+      async () => 'mgvmzgcrdbr1oqly666b'
+    );
     UsersRepository.prototype.add = jest.fn(async () => ({
       id: userId,
     }));
@@ -232,6 +240,7 @@ describe('Auth controller register', () => {
 
     // Assert
     expect(EmailsService.prototype.send).toHaveBeenCalled();
+    expect(CloudinaryService.prototype.uploadImage).toHaveBeenCalled();
     expect(response).toMatchObject({
       statusCode: 201,
       message: 'Created',
@@ -438,7 +447,8 @@ describe('Auth controller register', () => {
       statusCode: 422,
       message: 'Unprocessable_Entity',
       payload: null,
-      errorMessage: 'Login account cannot be created, please try again later',
+      errorMessage:
+        'User account/profile cannot be created, please try again later',
       fields: [],
     });
   });

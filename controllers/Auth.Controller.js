@@ -8,8 +8,8 @@ const AccountsRepository = require('../repositories/Accounts.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
 
 const EmailsService = require('../services/Emails.Service');
+const CloudinaryService = require('../services/Cloudinary.Service');
 
-// validators
 const validations = require('../utilities/validations');
 const {
   validate,
@@ -17,6 +17,8 @@ const {
 } = require('../common/processors/errorManager');
 const postAccountValidator = require('../utilities/validators/post.account.validator');
 const loginValidator = require('../utilities/validators/login.validator');
+
+const UploadPresets = require('../common/constants/imagefolders');
 
 // api/v0/auth
 class AuthController {
@@ -28,6 +30,7 @@ class AuthController {
     this.usersRepo = new UsersRepository();
 
     this.emailsService = new EmailsService();
+    this.cloudinaryService = new CloudinaryService();
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
@@ -87,7 +90,7 @@ class AuthController {
   register = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { username, email, password, dateOfBirth } = req.body;
+      const { avatar, username, email, password, dateOfBirth } = req.body;
 
       // Step validate input fields
       const { isValid, fields } = await validate(
@@ -111,46 +114,67 @@ class AuthController {
         return res.response(apiResponse);
       }
 
-      // Step create user profile
-      const createdProfile = await this.usersRepo.add({
-        username,
-        email,
-        dateOfBirth,
-      });
-      if (!createdProfile) {
-        apiResponse.unprocessableEntity(
-          'User profile cannot be created, please try again later'
+      console.log('# avatar');
+      console.log(avatar);
+
+      // Step upload avatar image on cloudinary
+      if (avatar) {
+        const imageId = await this.cloudinaryService.uploadImage(
+          avatar,
+          UploadPresets.avatars
         );
-        return res.response(apiResponse);
+        if (!imageId) {
+          apiResponse.unprocessableEntity('Error uploading the avatar image');
+          return res.response(apiResponse);
+        }
       }
 
       // Step generate hashed password
       const salt = await bcrypt.genSalt();
       const passwordHash = await bcrypt.hash(password, salt);
 
-      // Step create login account
-      const createdAccount = await this.accountsRepo.add({
-        username,
-        passwordHash,
-      });
-      if (!createdAccount) {
-        // Step rollback user profile
-        await this.usersRepo.remove(createdProfile.id);
+      // Step create user account and profile
+      const [createdProfile, createdAccount] = await Promise.all([
+        this.usersRepo.add({
+          avatar,
+          username,
+          email,
+          dateOfBirth,
+        }),
+        this.accountsRepo.add({
+          username,
+          passwordHash,
+        }),
+      ]);
+
+      // Step rollback when errors on user creation
+      const rollback = [];
+
+      if (!createdProfile || !createdAccount) {
+        if (!createdProfile && createdAccount)
+          rollback.push(this.accountsRepo.remove(createdAccount.id));
+
+        if (createdProfile && !createdAccount)
+          rollback.push(this.usersRepo.remove(createdProfile.id));
+      }
+
+      await Promise.all(rollback);
+
+      if (rollback.length) {
         apiResponse.unprocessableEntity(
-          'Login account cannot be created, please try again later'
+          'User account/profile cannot be created, please try again later'
         );
         return res.response(apiResponse);
       }
-      apiResponse.created(createdAccount.username);
 
-      const emailContent = {
+      await this.emailsService.send({
         to: email,
         from: process.env.APP_EMAIL,
         subject: 'Welcome to Forums App!!',
         html: `<h2>Hello ${username}!</h2> you have created a new account, please enjoy...`,
-      };
+      });
 
-      await this.emailsService.send(emailContent);
+      apiResponse.created(createdAccount.username);
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
