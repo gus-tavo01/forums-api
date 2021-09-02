@@ -11,8 +11,10 @@ class CloudinaryService {
 
   uploadImage = async (image, folder) => {
     try {
+      const prefix = process.env.CLOUDINARY_ASSET_PREFIX;
+
       const uploadResponse = await cloudinary.uploader.upload(image, {
-        upload_preset: folder,
+        upload_preset: `${prefix}_${folder}`,
       });
       return uploadResponse.public_id;
     } catch (error) {
