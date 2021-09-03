@@ -20,7 +20,7 @@ const ForumSchema = new Schema({
     default: Date.now,
   },
   updateDate: { type: Date, required: false, default: Date.now },
-  imageSrc: {
+  image: {
     type: String,
     required: false,
     default: null,

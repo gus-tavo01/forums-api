@@ -9,7 +9,7 @@ module.exports = (forums) => {
     updateDate: forum.updateDate,
     participants: forum.participants,
     lastActivity: forum.lastActivity,
-    imageSrc: forum.imageSrc,
+    image: forum.image,
     isPrivate: forum.isPrivate,
     isActive: forum.isActive,
   }));
