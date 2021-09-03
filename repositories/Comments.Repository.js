@@ -1,6 +1,7 @@
 const BaseRepository = require('./Base.Repository');
 const Comment = require('../models/Comment');
 const mapComment = require('../utilities/mappers/comment');
+const mapComments = require('../utilities/mappers/comments');
 
 class CommentsRepository extends BaseRepository {
   constructor() {
@@ -23,7 +24,9 @@ class CommentsRepository extends BaseRepository {
 
     if (filters.pageSize) options.limit = filters.pageSize;
 
-    return Comment.paginate(filter, options);
+    const comments = await Comment.paginate(filter, options);
+    const mapResult = mapComments(comments);
+    return mapResult;
   };
 }
 
