@@ -21,6 +21,16 @@ class CloudinaryService {
       return null;
     }
   };
+
+  deleteImage = async (imageId) => {
+    try {
+      const { result } = await cloudinary.uploader.destroy(imageId);
+      if (result !== 'ok') return null;
+      return imageId;
+    } catch (error) {
+      return null;
+    }
+  };
 }
 
 module.exports = CloudinaryService;
