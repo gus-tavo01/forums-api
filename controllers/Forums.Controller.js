@@ -6,6 +6,9 @@ const Roles = require('../common/constants/roles');
 const ForumsRepository = require('../repositories/Forums.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
+
+const CloudinaryService = require('../services/Cloudinary.Service');
+
 // validators
 const validations = require('../utilities/validations');
 const {
@@ -21,6 +24,8 @@ class ForumsController {
     this.forumsRepo = new ForumsRepository();
     this.participantsRepo = new ParticipantsRepository();
     this.usersRepo = new UsersRepository();
+
+    this.cloudinaryService = new CloudinaryService();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
