@@ -114,9 +114,6 @@ class AuthController {
         return res.response(apiResponse);
       }
 
-      console.log('# avatar');
-      console.log(avatar);
-
       // Step upload avatar image on cloudinary
       if (avatar) {
         const imageId = await this.cloudinaryService.uploadImage(
