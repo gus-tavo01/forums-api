@@ -1,19 +1,24 @@
 const { Router } = require('express');
 const ApiResponse = require('../common/ApiResponse');
+
+const CommentsRepository = require('../repositories/Comments.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
-const TopicsService = require('../services/Topics.Service');
-const CommentsService = require('../services/Comments.Service');
+const ParticipantsRepository = require('../repositories/Participants.Repository');
+const UsersRepository = require('../repositories/Users.Repository');
+
 const useJwtAuth = require('../middlewares/useJwtAuth');
+
+const Roles = require('../common/constants/roles');
 
 class CommentsController {
   constructor() {
     this.router = Router({ mergeParams: true });
     this.forumsRepo = new ForumsRepository();
-    this.topicsService = new TopicsService();
-    this.commentsService = new CommentsService();
+    this.commentsRepo = new CommentsRepository();
+    this.participantsRepo = new ParticipantsRepository();
+    this.usersRepo = new UsersRepository();
 
     this.router.get('/', this.get);
-    // this.router.get('/private', useJwtAuth, this.getPrivateComments);
     this.router.post('/', useJwtAuth, this.post);
     // this.router.delete('/:id', useJwtAuth, this.delete);
   }
@@ -21,7 +26,7 @@ class CommentsController {
   get = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { topicId, forumId } = req.params;
+      const { forumId } = req.params;
       const defaultFilters = {
         page: 1,
         pageSize: 15,
@@ -29,102 +34,94 @@ class CommentsController {
       const filters = {
         ...defaultFilters,
         ...req.query,
-        topicId,
+        forumId,
       };
 
       // Step Get forum and verify is public
-      const getForum = await this.forumsRepo.findById(forumId);
-      if (!getForum) {
+      const forum = await this.forumsRepo.findById(forumId);
+      if (!forum) {
         apiResponse.badRequest('Invalid forum, not found');
         return res.response(apiResponse);
       }
-      const { isPrivate } = getForum;
 
-      if (isPrivate) {
+      if (forum.isPrivate) {
         apiResponse.forbidden('You are not allowed to see this forum content');
         return res.response(apiResponse);
       }
 
-      // Step get topic
-      const getTopic = await this.topicsService.getById(topicId);
-      if (getTopic.fields.length) {
-        apiResponse.badRequest(null, getTopic.fields);
-        return res.response(apiResponse);
-      }
-      const topic = getTopic.result;
-
-      if (forumId !== topic.forumId.toString()) {
-        apiResponse.badRequest('Topic does not match with provided Forum');
-        return res.response(apiResponse);
-      }
-
-      // Step get topic comments
-      const getComments = await this.commentsService.get(filters);
-      apiResponse.ok(getComments.result);
+      // Step get forum comments
+      const comments = await this.commentsRepo.find(filters);
+      apiResponse.ok(comments);
     } catch (error) {
       apiResponse.internalServerError(error);
     }
     return res.response(apiResponse);
   };
 
-  // getPrivateComments = async (req, res) => {
-  // TODO -> validate requester has access to this forum
-  // };
-
   post = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
-      const { topicId } = req.params;
+      const { forumId } = req.params;
       const { body, user } = req;
+
       // TODO
       // Step request validations
+      // model validator
 
-      // Step get topic
-      const getTopicResponse = await this.topicsService.getById(topicId);
-      if (getTopicResponse.fields.length) {
-        apiResponse.badRequest('Invalid topic data', getTopicResponse.fields);
+      // Step get forum
+      const forum = await this.forumsRepo.findById(forumId);
+      if (!forum) {
+        apiResponse.unprocessableEntity('Invalid forum, does not exist');
         return res.response(apiResponse);
       }
-      if (!getTopicResponse.result) {
-        apiResponse.unprocessableEntity('Topic does not exist');
+
+      // Step verify requester is a forum participant
+      const { id: userId } = await this.usersRepo.findByUsername(user.username);
+
+      const forumParticipant = await this.participantsRepo.findByUserAndForum(
+        userId,
+        forumId
+      );
+      if (!forumParticipant) {
+        apiResponse.forbidden(
+          'You cannot post on this forum, since you are not a participant'
+        );
         return res.response(apiResponse);
       }
-      const topic = getTopicResponse.result;
-
-      // TODO
-      // Step verify requester is a participant
+      if (forumParticipant.role === Roles.viewer) {
+        apiResponse.forbidden(
+          'Your role does not have permissions to post a commment'
+        );
+        return res.response(apiResponse);
+      }
 
       // Step create comment
-      const newComment = { ...body, topicId: topic.id, from: user.username };
-      const createCommentResponse = await this.commentsService.create(
-        newComment
-      );
-      if (createCommentResponse.fields.length) {
-        apiResponse.badRequest(null, createCommentResponse.fields);
-        return res.response(apiResponse);
-      }
-      if (!createCommentResponse.result) {
+      const createdComment = await this.commentsRepo.add({
+        message: body.message,
+        forumId: forum.id,
+        from: user.username,
+        to: body.to,
+      });
+      if (!createdComment) {
         apiResponse.unprocessableEntity(
           'Comment cannot be processed, please try again later'
         );
         return res.response(apiResponse);
       }
 
-      // Step update topic comments count
-      const patch = {
-        comments: parseInt(topic.comments) + 1,
-      };
-      const updateTopic = await this.topicsService.update(topic.id, patch);
-      if (!updateTopic.result) {
-        apiResponse.internalServerError(
+      // Step update forum comments count
+      const updatedForum = await this.forumsRepo.modify(forum.id, {
+        comments: parseInt(forum.comments) + 1,
+      });
+      if (!updatedForum) {
+        apiResponse.unprocessableEntity(
           'Error while updating topic comments count'
         );
         return res.response(apiResponse);
       }
-      apiResponse.created(createCommentResponse.result);
+      apiResponse.created(createdComment);
     } catch (error) {
       apiResponse.internalServerError(error.message);
-      console.log(error);
     }
     return res.response(apiResponse);
   };
