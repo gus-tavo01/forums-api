@@ -1,13 +1,15 @@
 const { Router } = require('express');
 const useJwtAuth = require('../middlewares/useJwtAuth');
 const ApiResponse = require('../common/ApiResponse');
-const Roles = require('../common/constants/roles');
-// repositories
+
 const ForumsRepository = require('../repositories/Forums.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
 
 const CloudinaryService = require('../services/Cloudinary.Service');
+
+const Roles = require('../common/constants/roles');
+const Presets = require('../common/constants/imagefolders');
 
 // validators
 const validations = require('../utilities/validations');
@@ -82,7 +84,7 @@ class ForumsController {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
-      const { topic, description, isPrivate } = req.body;
+      const { topic, description, isPrivate, image } = req.body;
 
       // Step invoke model validator
       const { isValid, fields } = await validate(req.body, postForumValidator);
@@ -98,6 +100,25 @@ class ForumsController {
         return res.response(apiResponse);
       }
 
+      // rollback processes
+      const rollback = [];
+
+      // Step upload forum image on cloud
+      let imageId = null;
+      if (image) {
+        const uploadedImageId = await this.cloudinaryService.uploadImage(
+          image,
+          Presets.forums
+        );
+        if (!uploadedImageId) {
+          apiResponse.unprocessableEntity(
+            'Cannot upload the forum image, please try later'
+          );
+          return res.response(apiResponse);
+        }
+        imageId = uploadedImageId;
+      }
+
       // Step create forum
       const createdForum = await this.forumsRepo.add({
         topic,
@@ -105,15 +126,17 @@ class ForumsController {
         author: user.username,
         isPrivate,
         participants: 1,
+        image: imageId,
       });
       if (!createdForum) {
-        apiResponse.unprocessableEntity(
-          'Forum cannot be created, try again later'
-        );
+        rollback.push(this.cloudinaryService.deleteImage(imageId));
+        await Promise.all(rollback);
+
+        apiResponse.unprocessableEntity('Forum cannot be created');
         return res.response(apiResponse);
       }
 
-      // Step add owner as forum Operator
+      // Step add forum owner as forum Operator
       const participant = await this.participantsRepo.add({
         username: user.username,
         role: Roles.operator,
@@ -122,9 +145,10 @@ class ForumsController {
         avatar: user.avatar,
       });
       if (!participant) {
+        rollback.push(this.forumsRepo.remove(createdForum.id));
+        await Promise.all(rollback);
+
         apiResponse.unprocessableEntity('Cannot add participant on forum');
-        // Step rollback forum creation
-        await this.forumsRepo.remove(createdForum.id);
         return res.response(apiResponse);
       }
       apiResponse.created(createdForum);
