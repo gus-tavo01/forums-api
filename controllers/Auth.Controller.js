@@ -115,15 +115,17 @@ class AuthController {
       }
 
       // Step upload avatar image on cloudinary
+      let imageId = null;
       if (avatar) {
-        const imageId = await this.cloudinaryService.uploadImage(
+        const uploadedImageId = await this.cloudinaryService.uploadImage(
           avatar,
           UploadPresets.avatars
         );
-        if (!imageId) {
+        if (!uploadedImageId) {
           apiResponse.unprocessableEntity('Error uploading the avatar image');
           return res.response(apiResponse);
         }
+        imageId = uploadedImageId;
       }
 
       // Step generate hashed password
@@ -133,7 +135,7 @@ class AuthController {
       // Step create user account and profile
       const [createdProfile, createdAccount] = await Promise.all([
         this.usersRepo.add({
-          avatar,
+          avatar: imageId,
           username,
           email,
           dateOfBirth,
