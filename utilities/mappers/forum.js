@@ -10,4 +10,5 @@ module.exports = (forumData) => ({
   image: forumData.image,
   isPrivate: forumData.isPrivate,
   isActive: forumData.isActive,
+  comments: forumData.comments,
 });

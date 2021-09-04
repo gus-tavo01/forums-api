@@ -12,6 +12,7 @@ module.exports = (forums) => {
     image: forum.image,
     isPrivate: forum.isPrivate,
     isActive: forum.isActive,
+    comments: forum.comments,
   }));
   return result;
 };
