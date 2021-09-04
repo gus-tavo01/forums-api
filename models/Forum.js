@@ -20,7 +20,7 @@ const ForumSchema = new Schema({
     default: Date.now,
   },
   updateDate: { type: Date, required: false, default: Date.now },
-  imageSrc: {
+  image: {
     type: String,
     required: false,
     default: null,
@@ -37,6 +37,7 @@ const ForumSchema = new Schema({
     default: false,
   },
   isActive: { type: Boolean, required: false, default: true },
+  comments: { type: Number, required: false, default: 0 },
 });
 
 ForumSchema.plugin(mongoosePaginate);

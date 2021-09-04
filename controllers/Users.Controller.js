@@ -119,6 +119,8 @@ class UsersController {
     return res.response(apiResponse);
   };
 
+  // getPrivateComments = async (req, res) => {}
+
   // delete
   // patch
 }

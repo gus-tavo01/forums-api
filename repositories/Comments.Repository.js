@@ -1,34 +1,32 @@
+const BaseRepository = require('./Base.Repository');
 const Comment = require('../models/Comment');
+const mapComment = require('../utilities/mappers/comment');
+const mapComments = require('../utilities/mappers/comments');
 
-class CommentsRepository {
+class CommentsRepository extends BaseRepository {
+  constructor() {
+    super(Comment, mapComment);
+  }
+
   find = async (filters) => {
-    const filter = { topicId: filters.topicId };
+    const filter = { forumId: filters.forumId };
     const options = {
       page: 1,
     };
 
-    if (filters.message) {
-      filter.message = new RegExp(`.*${filters.message}.*`);
-    }
+    if (filters.to) filter.to = filters.to;
 
-    if (filters.page) {
-      options.page = filters.page;
-    }
+    if (filters.from) filter.from = filters.from;
 
-    if (filters.pageSize) {
-      options.limit = filters.pageSize;
-    }
+    if (filters.message) filter.message = new RegExp(`.*${filters.message}.*`);
 
-    return Comment.paginate(filter, options);
-  };
+    if (filters.page) options.page = filters.page;
 
-  add = async (comment) => {
-    const newComment = new Comment(comment);
-    return newComment.save();
-  };
+    if (filters.pageSize) options.limit = filters.pageSize;
 
-  remove = async (commentId) => {
-    return Comment.findByIdAndRemove(commentId);
+    const comments = await Comment.paginate(filter, options);
+    const mapResult = mapComments(comments);
+    return mapResult;
   };
 }
 

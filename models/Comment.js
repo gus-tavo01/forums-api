@@ -12,7 +12,7 @@ const CommentSchema = new Schema({
   },
   likes: { type: [Schema.Types.ObjectId], default: [] },
   dislikes: { type: [Schema.Types.ObjectId], default: [] },
-  topicId: { type: Schema.Types.ObjectId },
+  forumId: { type: Schema.Types.ObjectId },
 });
 
 CommentSchema.plugin(mongoosePaginate);
