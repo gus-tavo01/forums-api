@@ -56,7 +56,9 @@ class ForumsRepository extends BaseRepository {
     if (filters.author)
       filter.author = new RegExp(`.*${filters.author}.*`, 'i');
 
-    if (filters.public !== undefined) filter.isPrivate = !filters.public;
+    if (filters.public !== undefined) {
+      filter.isPrivate = filters.public === 'true' ? false : true;
+    }
 
     if (filters.isActive !== undefined) filter.isActive = filters.isActive;
 
@@ -73,6 +75,7 @@ class ForumsRepository extends BaseRepository {
     const userForums = await Participant.find({ userId });
     const userForumIds = userForums.map((p) => p.forumId);
 
+    // filter forums where if private then user must be participant
     const query = {
       ...filter,
       $expr: {
