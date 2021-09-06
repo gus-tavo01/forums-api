@@ -18,7 +18,7 @@ class UsersController {
     // register endpoint routes
     this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
-    this.router.get('/:id/forums', useAuth, this.getPrivateForums);
+    this.router.get('/:id/forums', useAuth, this.getUserForums);
   }
 
   get = async (req, res) => {
@@ -76,41 +76,58 @@ class UsersController {
     return res.response(apiResponse);
   };
 
-  getPrivateForums = async (req, res) => {
+  getUserForums = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
-      const { id } = req.params;
+      const { id: userId } = req.params;
       const defaultFilters = {
         page: 1,
         pageSize: 15,
-        sortOrder: 'desc',
+        sortOrder: 'asc',
         sortBy: 'createDate',
       };
       const filters = {
         ...defaultFilters,
         ...req.query,
-        author: user.username,
       };
 
-      // Step validate filters
-      // TODO
+      // Step validate request (filters, userId)
+      const { isValid, fields } = await executeValidations([
+        validations.isNumeric(filters.page, 'page'),
+        validations.isNumeric(filters.pageSize, 'pageSize'),
+        // TODO -> enable this validations when they are implemented
+        // validations.isOptional(filters.public, 'public'),
+        // validations.isBool(filters.public, 'public'),
+        // validations.isOptional(filters.isActive, 'isActive'),
+        // validations.isBool(filters.isActive, 'isActive'),
+        // validations.isOptional(filters.author, 'author'),
+        // validations.isEmpty(filters.author, 'author'),
+        // validations.isOptional(filters.topic, 'topic'),
+        // validations.isEmpty(filters.topic, 'topic'),
+        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
+        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
 
       // Step verify resource user id exist
-      const foundUser = await this.usersRepo.findById(id);
+      const foundUser = await this.usersRepo.findById(userId);
       if (!foundUser) {
         apiResponse.unprocessableEntity('User resource is not found');
         return res.response(apiResponse);
       }
 
-      // Step validate auth user is is eq to resource id
+      // Step validate auth user has permissions to view
       if (user.username !== foundUser.username) {
-        apiResponse.forbidden('Cannot view other users forums');
+        apiResponse.forbidden('Cannot view other users private forums');
         return res.response(apiResponse);
       }
 
-      // Step get user own forums
-      const forumsResponse = await this.forumsRepo.find(filters);
+      // Step get user forums where has visibility
+      const forumsResponse = await this.forumsRepo.findByUser(userId, filters);
       apiResponse.ok(forumsResponse);
     } catch (error) {
       apiResponse.internalServerError(error.message);

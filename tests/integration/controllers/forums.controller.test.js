@@ -28,7 +28,7 @@ afterEach(() => {
 });
 //#endregion test setup
 
-describe('Forums Controller', () => {
+describe('Forums Controller POST', () => {
   test('When forum data is valid, expect to be success', async () => {
     // Arrange
     const req = getMockReq({

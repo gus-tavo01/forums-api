@@ -51,6 +51,8 @@ Restful API for forums management
 - isOptional validator
 - isOneOf validator
 
+### TODOs
+
 ## Incoming Features
 
 ### Notifications (TBD)
