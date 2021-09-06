@@ -80,17 +80,16 @@ class UsersController {
     const apiResponse = new ApiResponse();
     try {
       const { user } = req;
-      const { id } = req.params;
+      const { id: userId } = req.params;
       const defaultFilters = {
         page: 1,
         pageSize: 15,
-        sortOrder: 'desc',
+        sortOrder: 'asc',
         sortBy: 'createDate',
       };
       const filters = {
         ...defaultFilters,
         ...req.query,
-        author: user.username,
       };
 
       // Step validate request (filters, userId)
@@ -115,23 +114,20 @@ class UsersController {
       }
 
       // Step verify resource user id exist
-      const foundUser = await this.usersRepo.findById(id);
+      const foundUser = await this.usersRepo.findById(userId);
       if (!foundUser) {
         apiResponse.unprocessableEntity('User resource is not found');
         return res.response(apiResponse);
       }
 
       // Step validate auth user has permissions to view
-      if (
-        user.username !== foundUser.username ||
-        user.username !== filters.author
-      ) {
+      if (user.username !== foundUser.username) {
         apiResponse.forbidden('Cannot view other users private forums');
         return res.response(apiResponse);
       }
 
-      // Step get user own forums
-      const forumsResponse = await this.forumsRepo.find(filters);
+      // Step get user forums where has visibility
+      const forumsResponse = await this.forumsRepo.findByUser(userId, filters);
       apiResponse.ok(forumsResponse);
     } catch (error) {
       apiResponse.internalServerError(error.message);
