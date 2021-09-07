@@ -1259,3 +1259,14 @@ describe('Participants Controller DELETE', () => {
     });
   });
 });
+
+describe('Participants Controller GET', () => {
+  // test('When request is valid, expect a list of participants', async () => {});
+  // test('When target forum is private and user is part of the forum, expect success');
+  // test('When target forum is private and user is not part of the forum, expect forbidden');
+  // test('When target forum is not found, expect 422 response', async () => {});
+  // test('When requestor user is not found, expect 422 response', async () => {});
+  // test('When page is invalid, expect validation error response', async () => {});
+  // test('When pageSize is invalid, expect validation error response', async () => {});
+  // TODO add rest of filters
+});
