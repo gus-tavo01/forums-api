@@ -385,7 +385,7 @@ class ParticipantsController {
     } catch (error) {
       apiResponse.internalServerError(error.message);
     }
-    res.response(apiResponse);
+    return res.response(apiResponse);
   };
 }
 
