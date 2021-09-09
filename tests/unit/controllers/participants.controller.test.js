@@ -1261,12 +1261,220 @@ describe('Participants Controller DELETE', () => {
 });
 
 describe('Participants Controller GET', () => {
-  // test('When request is valid, expect a list of participants', async () => {});
-  // test('When target forum is private and user is part of the forum, expect success');
-  // test('When target forum is private and user is not part of the forum, expect forbidden');
-  // test('When target forum is not found, expect 422 response', async () => {});
-  // test('When requestor user is not found, expect 422 response', async () => {});
-  // test('When page is invalid, expect validation error response', async () => {});
-  // test('When pageSize is invalid, expect validation error response', async () => {});
+  test('When request is valid, expect a list of participants', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1606';
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 1 },
+      user: { username: requestor.username },
+    });
+
+    // #region mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: '610bb6890a25e341708f6755',
+      username: requestor.username,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isPrivate: false,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      forumId,
+    }));
+    ParticipantsRepository.prototype.find = jest.fn(async () => ({
+      docs: [],
+    }));
+    // #endregion mocks
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      errorMessage: null,
+      fields: [],
+      message: 'Ok',
+    });
+  });
+
+  test('When target forum is private and user is part of the forum, expect success', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1606';
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 1 },
+      user: { username: requestor.username },
+    });
+
+    // #region mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: '610bb6890a25e341708f6755',
+      username: requestor.username,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isPrivate: true,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      forumId,
+    }));
+    ParticipantsRepository.prototype.find = jest.fn(async () => ({
+      docs: [],
+    }));
+    // #endregion mocks
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      errorMessage: null,
+      fields: [],
+      message: 'Ok',
+    });
+  });
+
+  test('When target forum is private and user is not part of the forum, expect forbidden', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1606';
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 1 },
+      user: { username: requestor.username },
+    });
+
+    // #region mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      username: requestor.username,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isPrivate: true,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(
+      async () => null
+    );
+    ParticipantsRepository.prototype.find = jest.fn(async () => ({
+      docs: [],
+    }));
+    // #endregion mocks
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 403,
+      fields: [],
+      message: 'Forbidden',
+    });
+  });
+
+  test('When target forum is not found, expect 422 response', async () => {
+    // Arrange
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 1 },
+      user: { username: requestor.username },
+    });
+
+    // #region mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: '610bb6890a25e341708f6755',
+      username: requestor.username,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => null);
+    // #endregion mocks
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      fields: [],
+      message: 'Unprocessable_Entity',
+    });
+  });
+
+  test('When requestor user is not found, expect 422 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1606';
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 1 },
+      user: { username: requestor.username },
+    });
+
+    // #region mocks
+    UsersRepository.prototype.findByUsername = jest.fn(async () => null);
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: forumId,
+      isPrivate: false,
+    }));
+    // #endregion mocks
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      fields: [],
+      message: 'Unprocessable_Entity',
+    });
+  });
+
+  test('When page is invalid, expect validation error response', async () => {
+    // Arrange
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706' },
+      query: { page: 'uno', pageSize: 2 },
+      user: { username: requestor.username },
+    });
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response.fields).not.toBe(null);
+    expect(response).toMatchObject({
+      statusCode: 400,
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+    });
+  });
+
+  test('When pageSize is invalid, expect validation error response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1606';
+    const requestor = { username: 'PEPITO001' };
+    const req = getMockReq({
+      params: { forumId },
+      query: { pageSize: false },
+      user: { username: requestor.username },
+    });
+
+    // Act
+    const response = await participantsController.get(req, res);
+
+    // Assert
+    expect(response.fields).not.toBe(null);
+    expect(response).toMatchObject({
+      statusCode: 400,
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+    });
+  });
+
   // TODO add rest of filters
 });
