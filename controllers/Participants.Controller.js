@@ -28,6 +28,7 @@ class ParticipantsController {
 
     this.router.delete('/:userId', useJwtAuth, this.delete);
     this.router.post('/', useJwtAuth, this.post);
+    this.router.get('/', useJwtAuth, this.get);
   }
 
   post = async (req, res) => {
@@ -322,6 +323,67 @@ class ParticipantsController {
     } catch (error) {
       apiResponse.internalServerError(error.message);
       console.log(error);
+    }
+    return res.response(apiResponse);
+  };
+
+  get = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { forumId } = req.params;
+      const requestor = req.user;
+
+      const defaultFilters = {
+        page: 1,
+        pageSize: 15,
+      };
+      const filters = {
+        ...defaultFilters,
+        ...req.query,
+        forumId,
+      };
+
+      // Step validations
+      const { isValid, fields } = await executeValidations([
+        validations.isNumeric(filters.page, 'page'),
+        validations.isNumeric(filters.pageSize, 'pageSize'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
+
+      // Step get requestor user and forum
+      const [requestorUser, forum] = await Promise.all([
+        this.usersRepo.findByUsername(requestor.username),
+        this.forumsRepo.findById(forumId),
+      ]);
+      if (!requestorUser) {
+        apiResponse.unprocessableEntity('Invalid account');
+        return res.response(apiResponse);
+      }
+      if (!forum) {
+        apiResponse.unprocessableEntity('Forum not found');
+        return res.response(apiResponse);
+      }
+
+      // Step verify requestor has permissions
+      const requestorParticipant = await this.participantsRepo.findByUserAndForum(
+        requestorUser.id,
+        forumId
+      );
+      if (forum.isPrivate && !requestorParticipant) {
+        apiResponse.forbidden(
+          `User: ${requestor.username} does not have sufficient permissions`
+        );
+        return res.response(apiResponse);
+      }
+
+      // Step get participants
+      const participants = await this.participantsRepo.find(filters);
+      apiResponse.ok(participants);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
     }
     return res.response(apiResponse);
   };
