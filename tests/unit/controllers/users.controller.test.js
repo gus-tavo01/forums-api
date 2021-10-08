@@ -197,3 +197,85 @@ describe('Users Controller GetForums', () => {
   // ('When sortOrder param is invalid, expect a validation error on response');
   // test('When public filter is invalid, expect a validation error', async () => {});
 });
+
+describe('Users Controller PATCH', () => {
+  test('When req data is provided, expect user to be updated', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const description = 'Patch request donas';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: description,
+      },
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      id: userId,
+    }));
+    UsersRepository.prototype.modify = jest.fn(async () => ({
+      id: userId,
+      selfDescription: description,
+    }));
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+      payload: { id: userId },
+    });
+  });
+
+  test('When target user is not found, expect a 404 status', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: 'El ticky is a good friend',
+      },
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      fields: [],
+      errorMessage: 'User is not found',
+      message: 'Not_Found',
+      payload: null,
+    });
+  });
+
+  test('When param userId is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = Date.now();
+    const req = getMockReq({
+      params: { id: userId },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'userId' expected to be GUID. Got: ${userId}`],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  // test('When selfDescription is invalid, expect a validation error', async () => {});
+  // test('When language is invalid, expect a validation error', async () => {});
+});
