@@ -7,6 +7,7 @@ const ForumsRepository = require('../repositories/Forums.Repository');
 
 const validations = require('../utilities/validations');
 const { executeValidations } = require('../common/processors/errorManager');
+// const patchUserValidator = require('../utilities/validators/patch.account.validator');
 
 // api/v0/users
 class UsersController {
@@ -19,6 +20,7 @@ class UsersController {
     this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
     this.router.get('/:id/forums', useAuth, this.getUserForums);
+    this.router.patch('/:id', this.patch);
   }
 
   get = async (req, res) => {
@@ -139,7 +141,42 @@ class UsersController {
   // getPrivateComments = async (req, res) => {}
 
   // delete
-  // patch
+
+  patch = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { id: userId } = req.params;
+      const { body } = req;
+
+      // Step validations
+      const { isValid, fields } = await executeValidations([
+        validations.isMongoId(userId, 'userId'),
+      ]);
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
+
+      // Step get user profile
+      const userProfile = await this.usersRepo.findById(userId);
+      if (!userProfile) {
+        apiResponse.notFound('User is not found');
+        return res.response(apiResponse);
+      }
+
+      // Step update profile
+      const patch = { ...body, updateDate: Date.now() };
+      const updateUser = await this.usersRepo.modify(userId, patch);
+      if (!updateUser) {
+        apiResponse.unprocessableEntity('User cannot be updated');
+        return res.response(apiResponse);
+      }
+      apiResponse.ok(updateUser);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
+    }
+    return res.response(apiResponse);
+  };
 }
 
 module.exports = UsersController;
