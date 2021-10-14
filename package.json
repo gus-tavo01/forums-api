@@ -1,7 +1,7 @@
 {
   "name": "forums-api",
-  "version": "1.0.0",
-  "description": "restful api for forums management",
+  "version": "0.1.0",
+  "description": "Restful api for forums management",
   "main": "index.js",
   "scripts": {
     "test": "jest unit",
@@ -10,7 +10,12 @@
   },
   "keywords": [
     "restful",
-    "api"
+    "api",
+    "nodeJs",
+    "express",
+    "JWT",
+    "passport",
+    "mongo"
   ],
   "author": "GALV",
   "license": "ISC",
@@ -22,9 +27,10 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "jest": "^26.6.3",
+    "jest": "^27.2.5",
+    "js-validation-tool": "^0.1.4",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.12.3",
+    "mongoose": "^6.0.10",
     "mongoose-paginate-v2": "^1.3.17",
     "nodemailer": "^6.6.3",
     "nodemailer-mailgun-transport": "^2.1.3",
