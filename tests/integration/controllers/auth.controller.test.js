@@ -14,16 +14,16 @@ let accountsRepo;
 let usersRepo;
 
 //#region test setup
-beforeAll(() => {
+beforeAll(async () => {
   jest.setTimeout(5 * 60 * 1000);
-  database.connect();
+  await database.connect();
   authController = new AuthController();
   accountsRepo = new AccountsRepository();
   usersRepo = new UsersRepository();
 });
 
-afterAll(() => {
-  database.disconnect();
+afterAll(async () => {
+  await database.disconnect();
 });
 
 afterEach(() => {
@@ -49,10 +49,14 @@ describe('Auth Controller Register', () => {
 
     // test clean up
     try {
-      const account = await accountsRepo.findByUsername(username);
+      const [account, user] = await Promise.all([
+        accountsRepo.findByUsername(username),
+        usersRepo.findByUsername(username),
+      ]);
+
       await Promise.all([
         await accountsRepo.remove(account.id),
-        await usersRepo.remove(account.userId),
+        await usersRepo.remove(user.id),
       ]);
     } catch (err) {}
 
