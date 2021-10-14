@@ -18,7 +18,7 @@ const {
 const postAccountValidator = require('../utilities/validators/post.account.validator');
 const loginValidator = require('../utilities/validators/login.validator');
 
-const UploadPresets = require('../common/constants/cloudinaryfolders');
+const UploadPresets = require('../common/constants/cloudinaryFolders');
 
 // api/v0/auth
 class AuthController {
