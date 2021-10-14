@@ -1,3 +1,4 @@
+// deprecated validations
 const isEmpty = require('./isEmpty');
 const isBool = require('./isBool');
 const isLength = require('./isLength');
@@ -5,8 +6,10 @@ const isMongoId = require('./isMongoId');
 const isNumeric = require('./isNumeric');
 const isEmail = require('./isEmail');
 const isDate = require('./isDate');
+const string = require('./string');
 
 module.exports = {
+  string,
   isEmpty,
   isBool,
   isLength,

@@ -5,9 +5,13 @@ const useAuth = require('../middlewares/useJwtAuth');
 const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
+const { validate, validateModel } = require('js-validation-tool');
+const patchUserValidator = require('../utilities/validators/patch.account.validator');
+
 const validations = require('../utilities/validations');
+
+// deprecated validation tools
 const { executeValidations } = require('../common/processors/errorManager');
-// const patchUserValidator = require('../utilities/validators/patch.account.validator');
 
 // api/v0/users
 class UsersController {
@@ -149,11 +153,15 @@ class UsersController {
       const { body } = req;
 
       // Step validations
-      const { isValid, fields } = await executeValidations([
-        validations.isMongoId(userId, 'userId'),
+      const [paramsValidation, modelValidation] = await Promise.all([
+        validate([validations.string.isMongoId('userId', userId)]),
+        validateModel(patchUserValidator, body),
       ]);
-      if (!isValid) {
-        apiResponse.badRequest('Validation errors', fields);
+      if (!paramsValidation.isValid || !modelValidation.isValid) {
+        apiResponse.badRequest('Validation errors', [
+          ...paramsValidation.fields,
+          ...modelValidation.fields,
+        ]);
         return res.response(apiResponse);
       }
 

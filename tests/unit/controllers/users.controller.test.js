@@ -270,12 +270,80 @@ describe('Users Controller PATCH', () => {
     expect(response).toMatchObject({
       statusCode: 400,
       payload: null,
-      fields: [`Field 'userId' expected to be GUID. Got: ${userId}`],
+      fields: [
+        `Field 'userId', expected to be a valid mongo id. Got: ${userId}`,
+      ],
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
     });
   });
 
-  // test('When selfDescription is invalid, expect a validation error', async () => {});
-  // test('When language is invalid, expect a validation error', async () => {});
+  test('When selfDescription is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: true,
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'selfDescription', expected to be String. Got: ${true}`],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When language is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        language: 69,
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'language', expected not to be empty. Got: 69`],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When appTheme is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        appTheme: '',
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'appTheme', expected not to be empty. Got: `],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
 });
