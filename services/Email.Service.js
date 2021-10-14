@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const mg = require('nodemailer-mailgun-transport');
 
-class EmailsService {
+class EmailService {
   constructor() {
     if (process.env.DEVELOPMENT) {
       this.transporter = nodemailer.createTransport({
@@ -33,4 +33,4 @@ class EmailsService {
   };
 }
 
-module.exports = EmailsService;
+module.exports = EmailService;

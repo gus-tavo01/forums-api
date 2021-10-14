@@ -6,14 +6,14 @@ const AuthController = require('../../../controllers/Auth.Controller');
 const AccountsRepository = require('../../../repositories/Accounts.Repository');
 const UsersRepository = require('../../../repositories/Users.Repository');
 
-const EmailsService = require('../../../services/Emails.Service');
+const EmailService = require('../../../services/Email.Service');
 const CloudinaryService = require('../../../services/Cloudinary.Service');
 
 const { imageUrl } = require('../../helpers/mockImageUrl');
 
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
-jest.mock('../../../services/Emails.Service');
+jest.mock('../../../services/Email.Service');
 jest.mock('../../../services/Cloudinary.Service');
 
 const authController = new AuthController();
@@ -233,13 +233,13 @@ describe('Auth controller register', () => {
     AccountsRepository.prototype.add = jest.fn(async () => ({
       username,
     }));
-    EmailsService.prototype.send = jest.fn(async () => null);
+    EmailService.prototype.send = jest.fn(async () => null);
 
     // Act
     const response = await authController.register(req, res);
 
     // Assert
-    expect(EmailsService.prototype.send).toHaveBeenCalled();
+    expect(EmailService.prototype.send).toHaveBeenCalled();
     expect(CloudinaryService.prototype.uploadImage).toHaveBeenCalled();
     expect(response).toMatchObject({
       statusCode: 201,
