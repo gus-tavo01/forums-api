@@ -9,7 +9,7 @@ const ParticipantsRepository = require('../repositories/Participants.Repository'
 const CloudinaryService = require('../services/Cloudinary.Service');
 
 const Roles = require('../common/constants/roles');
-const Presets = require('../common/constants/imagefolders');
+const Presets = require('../common/constants/cloudinaryfolders');
 
 // validators
 const validations = require('../utilities/validations');
