@@ -37,13 +37,15 @@ class UsersController {
       const filters = { ...defaultFilters, ...req.query };
 
       // Step validate filters
-      const { isValid, fields } = await executeValidations([
-        validations.isNumeric(filters.page, 'page'),
-        validations.isNumeric(filters.pageSize, 'pageSize'),
-        // validations.isOptional(filters.username, 'username'),
-        // validations.isOptional(filters.email, 'email'),
-        // validations.isOptional(filters.language, 'language'),
-        // validations.isOptional(filters.isActive, 'isActive'),
+      const { isValid, fields } = await validate([
+        Validations.number.isNumeric('page', filters.page),
+        Validations.number.isNumeric('pageSize', filters.pageSize),
+        Validations.common.isOptional('username', filters.username),
+        Validations.string.isNotEmpty('username', filters.username),
+        Validations.common.isOptional('email', filters.email),
+        customValidations.string.isEmail('email', filters.email),
+        // Validations.common.isOptional('isActive', filters.isActive),
+        // Validations.string.isString('isActive', filters.isActive),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);

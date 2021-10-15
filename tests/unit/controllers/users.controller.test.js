@@ -47,9 +47,86 @@ describe('Users Controller GET', () => {
     });
   });
 
-  // test('When username filter is invalid, expect a validation error');
+  test('When filter page is invalid, expect a validation error', async () => {
+    // Arrange
+    const page = 'one';
+    const req = getMockReq({
+      query: { page },
+      user: { username: 'yuzo-kun' },
+    });
 
-  // test('When email filter is invalid, expect a validation error');
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'page', expected to be Numeric. Got: ${page}`],
+    });
+  });
+
+  test('When filter pageSize is invalid, expect a validation error', async () => {
+    // Arrange
+    const pageSize = true;
+    const req = getMockReq({
+      query: { pageSize },
+      user: { username: 'yuzo-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'pageSize', expected to be Numeric. Got: ${pageSize}`],
+    });
+  });
+
+  test('When username filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const req = getMockReq({
+      query: { username: '' },
+      user: { username: 'yayis-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: ["Field 'username', expected not to be empty. Got: "],
+    });
+  });
+
+  test('When email filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const email = 'caca de gato';
+    const req = getMockReq({
+      query: { email },
+      user: { username: 'yayis-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'email', expected to be a valid email. Got: ${email}`],
+    });
+  });
+
+  // test('When isActive filters is invalid, expect a validation error');
 });
 
 describe('Users Controller GetForums', () => {
