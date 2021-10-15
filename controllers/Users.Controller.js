@@ -67,8 +67,8 @@ class UsersController {
       const { id } = req.params;
 
       // Step validate params
-      const { isValid, fields } = await executeValidations([
-        validations.isMongoId(id, 'id'),
+      const { isValid, fields } = await validate([
+        customValidations.string.isMongoId('id', id),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -77,6 +77,11 @@ class UsersController {
 
       // Step get user
       const user = await this.usersRepo.findById(id);
+      if (!user) {
+        apiResponse.notFound('User is not found');
+        return res.response(apiResponse);
+      }
+
       apiResponse.ok(user);
     } catch (error) {
       apiResponse.internalServerError(error.message);

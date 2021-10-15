@@ -129,6 +129,76 @@ describe('Users Controller GET', () => {
   // test('When isActive filters is invalid, expect a validation error');
 });
 
+describe('Users Controller GetById', () => {
+  test('When user id is valid and user is found, expect a successful response', async () => {
+    // Arrange
+    const userId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      id: userId,
+    }));
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+    });
+  });
+
+  test('When user is not found, expect a 404 response', async () => {
+    // Arrange
+    const userId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      fields: [],
+      errorMessage: 'User is not found',
+      message: 'Not_Found',
+    });
+  });
+
+  test('When user id is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = 'adadsasd213efd';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      fields: [`Field 'id', expected to be a valid mongo id. Got: ${userId}`],
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+    });
+  });
+});
+
 describe('Users Controller GetForums', () => {
   afterEach(() => {
     if (ForumsRepository.prototype.find)
