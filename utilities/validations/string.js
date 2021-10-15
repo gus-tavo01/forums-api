@@ -15,4 +15,10 @@ module.exports = {
     )}. Got: ${value}`,
     execute: () => validator.isLength(value, conf),
   }),
+  isEmail: (prop, value) => ({
+    validation: 'isEmail',
+    property: prop,
+    onFailureMessage: `Field '${prop}', expected to be a valid email. Got: ${value}`,
+    execute: () => validator.isEmail(value),
+  }),
 };
