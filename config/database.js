@@ -1,16 +1,10 @@
 const mongoose = require('mongoose');
 
 module.exports = {
-  connect: () => {
+  connect: async () => {
     const uri = process.env.DB_CONNECTION;
-    const opts = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useCreateIndex: true,
-      useFindAndModify: false,
-    };
-    mongoose.connect(uri, opts);
-    return mongoose.connection;
+    const connection = await mongoose.connect(uri);
+    return connection;
   },
-  disconnect: () => mongoose.disconnect(),
+  disconnect: async () => mongoose.disconnect(),
 };

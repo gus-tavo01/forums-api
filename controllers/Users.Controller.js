@@ -5,8 +5,9 @@ const useAuth = require('../middlewares/useJwtAuth');
 const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
-const validations = require('../utilities/validations');
-const { executeValidations } = require('../common/processors/errorManager');
+const { validate, validateModel, validations } = require('js-validation-tool');
+const patchUserValidator = require('../utilities/validators/patch.account.validator');
+const customValidations = require('../utilities/validations');
 
 // api/v0/users
 class UsersController {
@@ -19,6 +20,7 @@ class UsersController {
     this.router.get('/', useAuth, this.get);
     this.router.get('/:id', this.getById);
     this.router.get('/:id/forums', useAuth, this.getUserForums);
+    this.router.patch('/:id', this.patch);
   }
 
   get = async (req, res) => {
@@ -31,13 +33,15 @@ class UsersController {
       const filters = { ...defaultFilters, ...req.query };
 
       // Step validate filters
-      const { isValid, fields } = await executeValidations([
-        validations.isNumeric(filters.page, 'page'),
-        validations.isNumeric(filters.pageSize, 'pageSize'),
-        // validations.isOptional(filters.username, 'username'),
-        // validations.isOptional(filters.email, 'email'),
-        // validations.isOptional(filters.language, 'language'),
-        // validations.isOptional(filters.isActive, 'isActive'),
+      const { isValid, fields } = await validate([
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+        validations.common.isOptional('username', filters.username),
+        validations.string.isNotEmpty('username', filters.username),
+        validations.common.isOptional('email', filters.email),
+        customValidations.string.isEmail('email', filters.email),
+        // validations.common.isOptional('isActive', filters.isActive),
+        // validations.string.isString('isActive', filters.isActive),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -59,8 +63,8 @@ class UsersController {
       const { id } = req.params;
 
       // Step validate params
-      const { isValid, fields } = await executeValidations([
-        validations.isMongoId(id, 'id'),
+      const { isValid, fields } = await validate([
+        customValidations.string.isMongoId('id', id),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -69,6 +73,11 @@ class UsersController {
 
       // Step get user
       const user = await this.usersRepo.findById(id);
+      if (!user) {
+        apiResponse.notFound('User is not found');
+        return res.response(apiResponse);
+      }
+
       apiResponse.ok(user);
     } catch (error) {
       apiResponse.internalServerError(error.message);
@@ -93,20 +102,19 @@ class UsersController {
       };
 
       // Step validate request (filters, userId)
-      const { isValid, fields } = await executeValidations([
-        validations.isNumeric(filters.page, 'page'),
-        validations.isNumeric(filters.pageSize, 'pageSize'),
-        // TODO -> enable this validations when they are implemented
-        // validations.isOptional(filters.public, 'public'),
-        // validations.isBool(filters.public, 'public'),
-        // validations.isOptional(filters.isActive, 'isActive'),
-        // validations.isBool(filters.isActive, 'isActive'),
-        // validations.isOptional(filters.author, 'author'),
-        // validations.isEmpty(filters.author, 'author'),
-        // validations.isOptional(filters.topic, 'topic'),
-        // validations.isEmpty(filters.topic, 'topic'),
-        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
-        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      const { isValid, fields } = await validate([
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+        validations.common.isOptional('public', filters.public),
+        validations.boolean.isBool('public', filters.public),
+        validations.common.isOptional('isActive', filters.isActive),
+        validations.boolean.isBool('isActive', filters.isActive),
+        validations.common.isOptional('author', filters.author),
+        validations.string.isNotEmpty('author', filters.author),
+        validations.common.isOptional('topic', filters.topic),
+        validations.string.isNotEmpty('topic', filters.topic),
+        // validations.common.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
+        // validations.common.isOneOf(filters.sortOrder, ['asc', 'desc']),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -139,7 +147,46 @@ class UsersController {
   // getPrivateComments = async (req, res) => {}
 
   // delete
-  // patch
+
+  patch = async (req, res) => {
+    const apiResponse = new ApiResponse();
+    try {
+      const { id: userId } = req.params;
+      const { body } = req;
+
+      // Step validations
+      const [paramsValidation, modelValidation] = await Promise.all([
+        validate([customValidations.string.isMongoId('userId', userId)]),
+        validateModel(patchUserValidator, body),
+      ]);
+      if (!paramsValidation.isValid || !modelValidation.isValid) {
+        apiResponse.badRequest('Validation errors', [
+          ...paramsValidation.fields,
+          ...modelValidation.fields,
+        ]);
+        return res.response(apiResponse);
+      }
+
+      // Step get user profile
+      const userProfile = await this.usersRepo.findById(userId);
+      if (!userProfile) {
+        apiResponse.notFound('User is not found');
+        return res.response(apiResponse);
+      }
+
+      // Step update profile
+      const patch = { ...body, updateDate: Date.now() };
+      const updateUser = await this.usersRepo.modify(userId, patch);
+      if (!updateUser) {
+        apiResponse.unprocessableEntity('User cannot be updated');
+        return res.response(apiResponse);
+      }
+      apiResponse.ok(updateUser);
+    } catch (error) {
+      apiResponse.internalServerError(error.message);
+    }
+    return res.response(apiResponse);
+  };
 }
 
 module.exports = UsersController;

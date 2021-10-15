@@ -7,7 +7,7 @@ const ApiResponse = require('../common/ApiResponse');
 const AccountsRepository = require('../repositories/Accounts.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
 
-const EmailsService = require('../services/Emails.Service');
+const EmailService = require('../services/Email.Service');
 const CloudinaryService = require('../services/Cloudinary.Service');
 
 const validations = require('../utilities/validations');
@@ -18,7 +18,7 @@ const {
 const postAccountValidator = require('../utilities/validators/post.account.validator');
 const loginValidator = require('../utilities/validators/login.validator');
 
-const UploadPresets = require('../common/constants/imagefolders');
+const UploadPresets = require('../common/constants/cloudinaryFolders');
 
 // api/v0/auth
 class AuthController {
@@ -29,7 +29,7 @@ class AuthController {
     this.accountsRepo = new AccountsRepository();
     this.usersRepo = new UsersRepository();
 
-    this.emailsService = new EmailsService();
+    this.emailService = new EmailService();
     this.cloudinaryService = new CloudinaryService();
 
     this.router.post('/login', this.login);
@@ -166,7 +166,7 @@ class AuthController {
         return res.response(apiResponse);
       }
 
-      await this.emailsService.send({
+      await this.emailService.send({
         to: email,
         from: process.env.APP_EMAIL,
         subject: 'Welcome to Forums App!!',

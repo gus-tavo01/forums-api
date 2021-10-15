@@ -2,7 +2,7 @@ require('dotenv').config();
 const CloudinaryService = require('../../../services/Cloudinary.Service');
 const { imageUrl } = require('../../helpers/mockImageUrl');
 
-const ImageFolders = require('../../../common/constants/imagefolders');
+const ImageFolders = require('../../../common/constants/cloudinaryFolders');
 
 const cloudinaryService = new CloudinaryService();
 

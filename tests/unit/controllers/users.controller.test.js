@@ -47,9 +47,156 @@ describe('Users Controller GET', () => {
     });
   });
 
-  // test('When username filter is invalid, expect a validation error');
+  test('When filter page is invalid, expect a validation error', async () => {
+    // Arrange
+    const page = 'one';
+    const req = getMockReq({
+      query: { page },
+      user: { username: 'yuzo-kun' },
+    });
 
-  // test('When email filter is invalid, expect a validation error');
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'page', expected to be Numeric. Got: ${page}`],
+    });
+  });
+
+  test('When filter pageSize is invalid, expect a validation error', async () => {
+    // Arrange
+    const pageSize = true;
+    const req = getMockReq({
+      query: { pageSize },
+      user: { username: 'yuzo-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'pageSize', expected to be Numeric. Got: ${pageSize}`],
+    });
+  });
+
+  test('When username filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const req = getMockReq({
+      query: { username: '' },
+      user: { username: 'yayis-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: ["Field 'username', expected not to be empty. Got: "],
+    });
+  });
+
+  test('When email filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const email = 'caca de gato';
+    const req = getMockReq({
+      query: { email },
+      user: { username: 'yayis-kun' },
+    });
+
+    // Act
+    const response = await usersController.get(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      message: 'Bad_Request',
+      payload: null,
+      statusCode: 400,
+      fields: [`Field 'email', expected to be a valid email. Got: ${email}`],
+    });
+  });
+
+  // test('When isActive filters is invalid, expect a validation error');
+});
+
+describe('Users Controller GetById', () => {
+  test('When user id is valid and user is found, expect a successful response', async () => {
+    // Arrange
+    const userId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      id: userId,
+    }));
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+    });
+  });
+
+  test('When user is not found, expect a 404 response', async () => {
+    // Arrange
+    const userId = '610ee6890a25e341708f1703';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      fields: [],
+      errorMessage: 'User is not found',
+      message: 'Not_Found',
+    });
+  });
+
+  test('When user id is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = 'adadsasd213efd';
+    const req = getMockReq({
+      params: { id: userId },
+      user: 'Yusou-kun',
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.getById(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      fields: [`Field 'id', expected to be a valid mongo id. Got: ${userId}`],
+      errorMessage: 'Validation errors',
+      message: 'Bad_Request',
+    });
+  });
 });
 
 describe('Users Controller GetForums', () => {
@@ -164,7 +311,7 @@ describe('Users Controller GetForums', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'page' expected to be Numeric. Got: ${page}`],
+      fields: [`Field 'page', expected to be Numeric. Got: ${page}`],
     });
   });
 
@@ -185,15 +332,224 @@ describe('Users Controller GetForums', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'pageSize' expected to be Numeric. Got: ${pageSize}`],
+      fields: [`Field 'pageSize', expected to be Numeric. Got: ${pageSize}`],
     });
   });
 
-  // TODO -> pending test scenarios
-  // until validator V2 is developed and implemented.
-  // ('When author param is invalid, expect a validation error on response');
-  // ('When topic param is invalid, expect a validation error on response');
-  // ('When sortBy param is invalid, expect a validation error on response');
-  // ('When sortOrder param is invalid, expect a validation error on response');
-  // test('When public filter is invalid, expect a validation error', async () => {});
+  test('When author param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const author = ' ';
+    const req = getMockReq({
+      query: { author },
+      user: { username: 'Richie-Rich' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'author', expected not to be empty. Got: ${author}`],
+    });
+  });
+
+  test('When topic param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const topic = 90;
+    const req = getMockReq({
+      query: { topic },
+      user: { username: 'SelenaG' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'topic', expected not to be empty. Got: ${topic}`],
+    });
+  });
+
+  test('When public filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const isPublic = 'yes';
+    const req = getMockReq({
+      query: { public: isPublic },
+      user: { username: 'ticky-tic' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'public', expected to be Boolean. Got: ${isPublic}`],
+    });
+  });
+
+  // TODO
+  // test('When sortBy param is invalid, expect a validation error on response');
+  // test('When sortOrder param is invalid, expect a validation error on response');
+});
+
+describe('Users Controller PATCH', () => {
+  test('When req data is provided, expect user to be updated', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const description = 'Patch request donas';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: description,
+      },
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => ({
+      id: userId,
+    }));
+    UsersRepository.prototype.modify = jest.fn(async () => ({
+      id: userId,
+      selfDescription: description,
+    }));
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      fields: [],
+      errorMessage: null,
+      message: 'Ok',
+      payload: { id: userId },
+    });
+  });
+
+  test('When target user is not found, expect a 404 status', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: 'El ticky is a good friend',
+      },
+    });
+
+    UsersRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      fields: [],
+      errorMessage: 'User is not found',
+      message: 'Not_Found',
+      payload: null,
+    });
+  });
+
+  test('When param userId is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = Date.now();
+    const req = getMockReq({
+      params: { id: userId },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [
+        `Field 'userId', expected to be a valid mongo id. Got: ${userId}`,
+      ],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When selfDescription is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        selfDescription: true,
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'selfDescription', expected to be String. Got: ${true}`],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When language is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        language: 69,
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'language', expected not to be empty. Got: 69`],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
+
+  test('When appTheme is provided and is invalid, expect a validation error', async () => {
+    // Arrange
+    const userId = '61606d471763a92d0c7fa31b';
+    const req = getMockReq({
+      params: { id: userId },
+      body: {
+        appTheme: '',
+      },
+    });
+
+    // Act
+    const response = await usersController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      payload: null,
+      fields: [`Field 'appTheme', expected not to be empty. Got: `],
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+    });
+  });
 });

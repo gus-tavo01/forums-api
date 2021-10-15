@@ -1,7 +1,7 @@
 require('dotenv').config();
-const EmailsService = require('../../../services/Emails.Service');
+const EmailService = require('../../../services/Email.Service');
 
-const emailsService = new EmailsService();
+const emailsService = new EmailService();
 describe('EmailsService sendEmail', () => {
   beforeAll(() => {
     jest.setTimeout = 15000;
