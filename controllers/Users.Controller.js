@@ -5,13 +5,9 @@ const useAuth = require('../middlewares/useJwtAuth');
 const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
-const { validate, validateModel } = require('js-validation-tool');
+const { validate, validateModel, validations } = require('js-validation-tool');
 const patchUserValidator = require('../utilities/validators/patch.account.validator');
-
-const validations = require('../utilities/validations');
-
-// deprecated validation tools
-const { executeValidations } = require('../common/processors/errorManager');
+const customValidations = require('../utilities/validations');
 
 // api/v0/users
 class UsersController {
@@ -38,14 +34,14 @@ class UsersController {
 
       // Step validate filters
       const { isValid, fields } = await validate([
-        Validations.number.isNumeric('page', filters.page),
-        Validations.number.isNumeric('pageSize', filters.pageSize),
-        Validations.common.isOptional('username', filters.username),
-        Validations.string.isNotEmpty('username', filters.username),
-        Validations.common.isOptional('email', filters.email),
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+        validations.common.isOptional('username', filters.username),
+        validations.string.isNotEmpty('username', filters.username),
+        validations.common.isOptional('email', filters.email),
         customValidations.string.isEmail('email', filters.email),
-        // Validations.common.isOptional('isActive', filters.isActive),
-        // Validations.string.isString('isActive', filters.isActive),
+        // validations.common.isOptional('isActive', filters.isActive),
+        // validations.string.isString('isActive', filters.isActive),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -106,20 +102,19 @@ class UsersController {
       };
 
       // Step validate request (filters, userId)
-      const { isValid, fields } = await executeValidations([
-        validations.isNumeric(filters.page, 'page'),
-        validations.isNumeric(filters.pageSize, 'pageSize'),
-        // TODO -> enable this validations when they are implemented
-        // validations.isOptional(filters.public, 'public'),
-        // validations.isBool(filters.public, 'public'),
-        // validations.isOptional(filters.isActive, 'isActive'),
-        // validations.isBool(filters.isActive, 'isActive'),
-        // validations.isOptional(filters.author, 'author'),
-        // validations.isEmpty(filters.author, 'author'),
-        // validations.isOptional(filters.topic, 'topic'),
-        // validations.isEmpty(filters.topic, 'topic'),
-        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
-        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      const { isValid, fields } = await validate([
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+        validations.common.isOptional('public', filters.public),
+        validations.boolean.isBool('public', filters.public),
+        validations.common.isOptional('isActive', filters.isActive),
+        validations.boolean.isBool('isActive', filters.isActive),
+        validations.common.isOptional('author', filters.author),
+        validations.string.isNotEmpty('author', filters.author),
+        validations.common.isOptional('topic', filters.topic),
+        validations.string.isNotEmpty('topic', filters.topic),
+        // validations.common.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
+        // validations.common.isOneOf(filters.sortOrder, ['asc', 'desc']),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -161,7 +156,7 @@ class UsersController {
 
       // Step validations
       const [paramsValidation, modelValidation] = await Promise.all([
-        validate([validations.string.isMongoId('userId', userId)]),
+        validate([customValidations.string.isMongoId('userId', userId)]),
         validateModel(patchUserValidator, body),
       ]);
       if (!paramsValidation.isValid || !modelValidation.isValid) {

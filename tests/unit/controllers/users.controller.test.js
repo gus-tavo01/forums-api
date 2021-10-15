@@ -311,7 +311,7 @@ describe('Users Controller GetForums', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'page' expected to be Numeric. Got: ${page}`],
+      fields: [`Field 'page', expected to be Numeric. Got: ${page}`],
     });
   });
 
@@ -332,17 +332,76 @@ describe('Users Controller GetForums', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'pageSize' expected to be Numeric. Got: ${pageSize}`],
+      fields: [`Field 'pageSize', expected to be Numeric. Got: ${pageSize}`],
     });
   });
 
-  // TODO -> pending test scenarios
-  // until validator V2 is developed and implemented.
-  // ('When author param is invalid, expect a validation error on response');
-  // ('When topic param is invalid, expect a validation error on response');
-  // ('When sortBy param is invalid, expect a validation error on response');
-  // ('When sortOrder param is invalid, expect a validation error on response');
-  // test('When public filter is invalid, expect a validation error', async () => {});
+  test('When author param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const author = ' ';
+    const req = getMockReq({
+      query: { author },
+      user: { username: 'Richie-Rich' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'author', expected not to be empty. Got: ${author}`],
+    });
+  });
+
+  test('When topic param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const topic = 90;
+    const req = getMockReq({
+      query: { topic },
+      user: { username: 'SelenaG' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'topic', expected not to be empty. Got: ${topic}`],
+    });
+  });
+
+  test('When public filter is invalid, expect a validation error', async () => {
+    // Arrange
+    const isPublic = 'yes';
+    const req = getMockReq({
+      query: { public: isPublic },
+      user: { username: 'ticky-tic' },
+    });
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [`Field 'public', expected to be Boolean. Got: ${isPublic}`],
+    });
+  });
+
+  // TODO
+  // test('When sortBy param is invalid, expect a validation error on response');
+  // test('When sortOrder param is invalid, expect a validation error on response');
 });
 
 describe('Users Controller PATCH', () => {
