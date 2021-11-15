@@ -27,13 +27,13 @@ describe('Participants Controller POST', () => {
     const forumId = '610ee6890a25e341708f1706';
     const newParticipant = {
       username: 'ticky.perez',
-      role: Roles.participant,
+      role: Roles.Participant,
       userId: '610ee6890a25e341708f1703',
     };
     const requestor = {
       userId: '510ee6890a25a331708f1201',
       username: 'testerDeveloper001',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
 
     const req = getMockReq({
@@ -151,7 +151,7 @@ describe('Participants Controller POST', () => {
     const forumId = '610ee6890a25e341708f1706';
     const req = getMockReq({
       params: { forumId },
-      body: { username: 'ticky.perez', role: Roles.participant },
+      body: { username: 'ticky.perez', role: Roles.Participant },
       user: { username: requestor.username },
     });
 
@@ -160,7 +160,7 @@ describe('Participants Controller POST', () => {
       id: requestor.userId,
     }));
     ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
-      role: Roles.participant,
+      role: Roles.Participant,
     }));
 
     // Act
@@ -251,8 +251,8 @@ describe('Participants Controller POST', () => {
 
   test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {
     // Arrange
-    const source = { username: 'any.one', role: Roles.operator };
-    const requestor = { username: 'anyone01', role: Roles.administrator };
+    const source = { username: 'any.one', role: Roles.Pperator };
+    const requestor = { username: 'anyone01', role: Roles.Administrator };
     const req = getMockReq({
       params: { forumId: '610ee6890a25e341708f1706' },
       body: { username: source.username, role: source.role },
@@ -285,10 +285,10 @@ describe('Participants Controller POST', () => {
     const forumId = '610ee6890a25e341708f1706';
     const source = {
       username: 'Current.Operator',
-      role: Roles.operator,
+      role: Roles.Operator,
       userId: '610ee6899a25e341708f1209',
     };
-    const requestor = { username: 'newOperator002', role: Roles.operator };
+    const requestor = { username: 'newOperator002', role: Roles.Operator };
     const req = getMockReq({
       params: { forumId },
       body: { username: source.username, role: source.role },
@@ -316,7 +316,7 @@ describe('Participants Controller POST', () => {
       participants: 10,
     }));
     ParticipantsRepository.prototype.modify = jest.fn(async () => ({
-      role: Roles.operator,
+      role: Roles.Operator,
     }));
     ParticipantsRepository.prototype.add = jest.fn(async () => ({
       ...source,
@@ -348,10 +348,10 @@ describe('Participants Controller POST', () => {
     const forumId = '610ee6890a25e341708f1706';
     const participantData = {
       username: 'old.operator',
-      role: Roles.operator,
+      role: Roles.Operator,
       userId: '610ee6899a25e341708f1209',
     };
-    const requestorData = { username: 'newOperator002', role: Roles.operator };
+    const requestorData = { username: 'newOperator002', role: Roles.Operator };
     const req = getMockReq({
       params: { forumId },
       body: participantData,
@@ -401,7 +401,7 @@ describe('Participants Controller POST', () => {
   test('When source account is not found, expect a 422 response', async () => {
     // Arrange
     const username = 'developer002';
-    const source = { username: 'yayis.loera', role: Roles.viewer };
+    const source = { username: 'yayis.loera', role: Roles.Viewer };
     const requestor = {
       username,
       role: 'Operator',
@@ -480,11 +480,11 @@ describe('Participants Controller POST', () => {
 
   test('When source user is already a forum member, expect a 409 response', async () => {
     // Arrange
-    const participantData = { username: 'yayis.loera', role: Roles.viewer };
+    const participantData = { username: 'yayis.loera', role: Roles.Viewer };
     const userId = '610ee6890a25e341708f1111';
     const requestor = {
       username: 'Developer002',
-      role: Roles.administrator,
+      role: Roles.Administrator,
       userId: '610ee6890a25e341708f1705',
     };
     const forumId = '610ee6890a25e341708f1706';
@@ -529,11 +529,11 @@ describe('Participants Controller POST', () => {
 
   test('When target forum is not found, expect a 422 response', async () => {
     // Arrange
-    const participantData = { username: 'yayis.loera', role: Roles.viewer };
+    const participantData = { username: 'yayis.loera', role: Roles.Viewer };
     const userId = '610ee6890a25e341708f1111';
     const requestor = {
       username: 'developer002',
-      role: Roles.operator,
+      role: Roles.Operator,
       userId: '610ee6890a25e3134v08f1706',
     };
     const forumId = '610ee6890a25e341708f1706';
@@ -577,12 +577,12 @@ describe('Participants Controller POST', () => {
     // Arrange
     const participantData = {
       username: 'yayis.loera',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const userId = '610ee6890a25e341708f1111';
     const requestor = {
       username: 'developer004',
-      role: Roles.operator,
+      role: Roles.Operator,
       userId: 'adasdasbvbn77f7dfbd7f6g',
     };
     const forumId = '610ee6890a25e341708f1706';
@@ -630,7 +630,7 @@ describe('Participants Controller POST', () => {
     const username = 'developer002';
     const participantData = {
       username: 'yayis.loera',
-      role: Roles.administrator,
+      role: Roles.Administrator,
     };
     const userId = '610ee6890a25e341708f1111';
     const requestor = {
@@ -695,12 +695,12 @@ describe('Participants Controller DELETE', () => {
       participantId: '650ee6890a25e341708f3000',
       userId: '650ee6890a25e341708f1505',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: targetParticipant.participantId, forumId },
@@ -813,12 +813,12 @@ describe('Participants Controller DELETE', () => {
       participantId: '650ee6890a25e341708f3000',
       userId: '650ee6890a25e341708f1505',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.viewer,
+      role: Roles.Viewer,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -857,7 +857,7 @@ describe('Participants Controller DELETE', () => {
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.viewer,
+      role: Roles.Viewer,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -897,7 +897,7 @@ describe('Participants Controller DELETE', () => {
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -935,12 +935,12 @@ describe('Participants Controller DELETE', () => {
     const target = {
       participantId: '650ee6890a25e341708f3000',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -984,12 +984,12 @@ describe('Participants Controller DELETE', () => {
     const target = {
       participantId: '650ee6890a25e341708f3000',
       username: 'Will.Remove',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.administrator,
+      role: Roles.Administrator,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -1030,12 +1030,12 @@ describe('Participants Controller DELETE', () => {
     const target = {
       participantId: '650ee6890a25e341708f3000',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -1078,7 +1078,7 @@ describe('Participants Controller DELETE', () => {
     // Arrange
     const forumId = '610ee6890a25e341708f1702';
     const username = 'Unit.Test001';
-    const role = Roles.participant;
+    const role = Roles.Participant;
     const target = {
       participantId: '650ee6890a25e341708f3000',
       username,
@@ -1141,12 +1141,12 @@ describe('Participants Controller DELETE', () => {
       participantId: '650ee6890a25e341708f3000',
       userId: '650ee6890a25e341708f1505',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: targetParticipant.participantId, forumId },
@@ -1201,12 +1201,12 @@ describe('Participants Controller DELETE', () => {
       participantId: '650ee6890a25e341708f3000',
       userId: '650ee6890a25e341708f1505',
       username: 'Will.Remove',
-      role: Roles.participant,
+      role: Roles.Participant,
     };
     const requestor = {
       userId: '650bb6890a25a341408f1705',
       username: 'Unit.User',
-      role: Roles.operator,
+      role: Roles.Operator,
     };
     const req = getMockReq({
       params: { userId: target.participantId, forumId },
@@ -1477,4 +1477,256 @@ describe('Participants Controller GET', () => {
   });
 
   // TODO add rest of filters
+});
+
+describe('Participants Controller PATCH', () => {
+  test('When request is valid and user has permissions, expect response to be success', async () => {
+    // Arrange
+    const requestorUser = {
+      username: 'Jhon.Doe',
+      userId: '625aa6890a25e341708c1899',
+      participantId: '610ee6890a25e856708f1298',
+      role: Roles.Administrator,
+    };
+    const targetForum = {
+      id: '610ee6890a25e341708f1702',
+    };
+    const targetUser = {
+      username: 'TargetMe',
+      participantId: '610ee6890a25e541908e1852',
+      role: Roles.Participant,
+    };
+
+    const body = { role: Roles.Administrator };
+    const req = getMockReq({
+      params: {
+        forumId: targetForum.id,
+        participantId: targetUser.participantId,
+      },
+      user: {
+        username: requestorUser.username,
+      },
+      body,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findById = jest.fn();
+    ParticipantsRepository.prototype.findById.mockResolvedValueOnce({
+      id: targetUser.participantId,
+      username: targetUser.username,
+      role: targetUser.role,
+    });
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: targetForum.id,
+    }));
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestorUser.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      id: requestorUser.participantId,
+      username: requestorUser.username,
+      role: requestorUser.role,
+    }));
+
+    const expectedUpdatedUser = {
+      id: targetUser.participantId,
+      username: targetUser.username,
+      role: body.role,
+    };
+    ParticipantsRepository.prototype.modify = jest.fn(
+      async () => expectedUpdatedUser
+    );
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 200,
+      message: 'Ok',
+      fields: [],
+      payload: expectedUpdatedUser,
+      errorMessage: null,
+    });
+  });
+
+  // #region general validations
+  test('When forumId is invalid, expect a validation error', async () => {
+    // Arrange
+    const forumId = 'false';
+    const req = getMockReq({
+      params: { forumId, participantId: '610ee6890a25e341708f1706' },
+      user: { username: 'ticky-yayis' },
+      body: { role: Roles.Participant },
+    });
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      fields: [
+        `Field 'forumId', expected to be a valid mongo id. Got: ${forumId}`,
+      ],
+    });
+  });
+
+  test('When participantId is invalid, expect a validation error', async () => {
+    // Arrange
+    const participantId = 32;
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706', participantId },
+      user: { username: 'yayis' },
+      body: { role: Roles.Participant },
+    });
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      fields: [
+        `Field 'participantId', expected to be a valid mongo id. Got: ${participantId}`,
+      ],
+    });
+  });
+
+  test('When request role is invalid, expect a 400 response', async () => {
+    // Arrange
+    const participantId = '610ee6890a25e341708f1955';
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706', participantId },
+      user: { username: 'yayis' },
+      body: { role: '' },
+    });
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      fields: [`Field 'role', expected not to be empty. Got: `],
+    });
+  });
+
+  test('When request role does not exist, expect a 422 response', async () => {
+    // Arrange
+    const participantId = '610ee6890a25e341708f1955';
+    const newRole = 'Gatito';
+    const req = getMockReq({
+      params: { forumId: '610ee6890a25e341708f1706', participantId },
+      user: { username: 'yayis' },
+      body: { role: newRole },
+    });
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      errorMessage: 'Invalid role',
+      fields: [
+        `Field 'role', expected to be in ${JSON.stringify(
+          Object.keys(Roles)
+        )}. Got: ${newRole}`,
+      ],
+    });
+  });
+
+  test('When target participant is not found, expect a 404 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const participantId = '610ee6890a25e541908e1852';
+
+    const req = getMockReq({
+      params: {
+        forumId,
+        participantId,
+      },
+      user: {
+        username: 'Jhon.Doe',
+      },
+      body: {
+        role: Roles.Administrator,
+      },
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 404,
+      message: 'Not_Found',
+      fields: [],
+      payload: null,
+      errorMessage: `${participantId} is not member of this forum`,
+    });
+  });
+
+  test('When target forum is not found, expect a 422 response', async () => {
+    // Arrange
+    const forumId = '610ee6890a25e341708f1702';
+    const participantId = '610ee6890a25e541908e1852';
+
+    const req = getMockReq({
+      params: {
+        forumId,
+        participantId,
+      },
+      user: {
+        username: 'Jhon.Doe',
+      },
+      body: {
+        role: Roles.Administrator,
+      },
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findById = jest.fn(async () => ({
+      id: participantId,
+    }));
+    ForumsRepository.prototype.findById = jest.fn(async () => null);
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 422,
+      message: 'Unprocessable_Entity',
+      fields: [],
+      payload: null,
+      errorMessage: `Invalid forum`,
+    });
+  });
+  // #endregion general validations
+
+  // #region business logic
+  // test('When requestor user is not participant of the target forum, expect a 403 response', async () => {});
+
+  // test('When requestor user role is not authorized to update others role, expect a 403 response', async () => {});
+
+  // test('When target participant is the forum operator, expect a 403 response', async () => {});
+
+  // test('When role change is self, expect a 403 response', async () => {});
+
+  // test('When request role is operator and requestor is not the current operator, expect a forbidden response', async () => {});
+
+  // test('When request role is operator and requestor is the current operator, expect operator to be updated', async () => {});
+  // #endregion business logic
 });
