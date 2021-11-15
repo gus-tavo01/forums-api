@@ -1,3 +1,8 @@
+const string = require('./string');
+const number = require('./number');
+const bool = require('./bool');
+const common = require('./common');
+
 // deprecated validations
 const isEmpty = require('./isEmpty');
 const isBool = require('./isBool');
@@ -6,10 +11,15 @@ const isMongoId = require('./isMongoId');
 const isNumeric = require('./isNumeric');
 const isEmail = require('./isEmail');
 const isDate = require('./isDate');
-const string = require('./string');
 
 module.exports = {
   string,
+  number,
+  common,
+  bool,
+  // TODO: segment those validatios per data type
+  // date, (greaterThan(dateToCompare), lessThan(dateToCompare), equalTo(dateToCompare))
+
   isEmpty,
   isBool,
   isLength,
