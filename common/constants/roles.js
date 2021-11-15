@@ -1,6 +1,6 @@
 module.exports = {
-  operator: 'Operator',
-  administrator: 'Administrator',
-  participant: 'Participant',
-  viewer: 'Viewer',
+  Operator: 'Operator',
+  Administrator: 'Administrator',
+  Participant: 'Participant',
+  Viewer: 'Viewer',
 };
