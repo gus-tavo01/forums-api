@@ -56,11 +56,12 @@ class ApiResponse {
     this.errorMessage = errorMessage ?? 'Resource already exists';
   };
 
-  unprocessableEntity = (errorMessage) => {
+  unprocessableEntity = (errorMessage, fields = []) => {
     this.statusCode = 422;
     this.message = 'Unprocessable_Entity';
     this.errorMessage =
       errorMessage ?? 'Resource cannot be processed, try again later';
+    this.fields = fields;
   };
 
   internalServerError = (errorMessage) => {
