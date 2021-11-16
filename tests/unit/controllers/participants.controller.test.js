@@ -1776,7 +1776,65 @@ describe('Participants Controller PATCH', () => {
     });
   });
 
-  // test('When requestor user role is not authorized to update others role, expect a 403 response', async () => {});
+  test('When requestor user role is not authorized to update others role, expect a 403 response', async () => {
+    // Arrange
+    const requestorUser = {
+      username: 'Jhon.Doe',
+      userId: '625aa6890a25e341708c1899',
+      participantId: '610ee6890a25e856708f1298',
+      role: Roles.Participant,
+    };
+    const targetForum = {
+      id: '610ee6890a25e341708f1702',
+    };
+    const targetUser = {
+      username: 'TargetMe',
+      participantId: '610ee6890a25e541908e1852',
+      role: Roles.Participant,
+    };
+
+    const body = { role: Roles.Administrator };
+    const req = getMockReq({
+      params: {
+        forumId: targetForum.id,
+        participantId: targetUser.participantId,
+      },
+      user: {
+        username: requestorUser.username,
+      },
+      body,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findById = jest.fn();
+    ParticipantsRepository.prototype.findById.mockResolvedValueOnce({
+      id: targetUser.participantId,
+      username: targetUser.username,
+      role: targetUser.role,
+    });
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: targetForum.id,
+    }));
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestorUser.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      id: requestorUser.participantId,
+      role: requestorUser.role,
+    }));
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 403,
+      message: 'Forbidden',
+      fields: [],
+      payload: null,
+      errorMessage: 'Requestor role does not have sufficient permissions on this forum',
+    });
+  });
 
   // test('When target participant is the forum operator, expect a 403 response', async () => {});
 
