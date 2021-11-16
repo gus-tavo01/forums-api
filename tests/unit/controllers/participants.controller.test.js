@@ -251,7 +251,7 @@ describe('Participants Controller POST', () => {
 
   test('When request is an operator transfer and requestor role is invalid, expect a 403 response', async () => {
     // Arrange
-    const source = { username: 'any.one', role: Roles.Pperator };
+    const source = { username: 'any.one', role: Roles.Operator };
     const requestor = { username: 'anyone01', role: Roles.Administrator };
     const req = getMockReq({
       params: { forumId: '610ee6890a25e341708f1706' },
