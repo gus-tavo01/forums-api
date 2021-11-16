@@ -2020,6 +2020,79 @@ describe('Participants Controller PATCH', () => {
     });
   });
 
-  // test('When request role is operator and requestor is the current operator, expect operator to be updated', async () => {});
+  test('When request role is operator and requestor is the current operator, expect operator to be updated', async () => {
+    // Arrange
+    const requestorUser = {
+      username: 'Jhon.Doe',
+      userId: '625aa6890a25e341708c1899',
+      participantId: '610ee6890a25e856708f1298',
+      role: Roles.Operator,
+    };
+    const targetForum = {
+      id: '610ee6890a25e341708f1702',
+    };
+    const targetUser = {
+      username: 'Yayis',
+      participantId: '610ee6890a25e541908e1852',
+      role: Roles.Viewer,
+    };
+
+    const body = { role: Roles.Operator };
+    const req = getMockReq({
+      params: {
+        forumId: targetForum.id,
+        participantId: targetUser.participantId,
+      },
+      user: {
+        username: requestorUser.username,
+      },
+      body,
+    });
+
+    // mocks
+    ParticipantsRepository.prototype.findById = jest.fn();
+    ParticipantsRepository.prototype.findById.mockResolvedValueOnce({
+      id: targetUser.participantId,
+      username: targetUser.username,
+      role: targetUser.role,
+    });
+    ForumsRepository.prototype.findById = jest.fn(async () => ({
+      id: targetForum.id,
+    }));
+    UsersRepository.prototype.findByUsername = jest.fn(async () => ({
+      id: requestorUser.userId,
+    }));
+    ParticipantsRepository.prototype.findByUserAndForum = jest.fn(async () => ({
+      id: requestorUser.participantId,
+      username: requestorUser.username,
+      role: requestorUser.role,
+    }));
+    ParticipantsRepository.prototype.modify = jest.fn();
+    ParticipantsRepository.prototype.modify.mockResolvedValueOnce({
+      id: requestorUser.participantId,
+      role: Roles.Administrator,
+    });
+    const expectedUpdatedUser = {
+      id: targetUser.participantId,
+      username: targetUser.username,
+      role: body.role,
+    };
+    ParticipantsRepository.prototype.modify.mockResolvedValueOnce(
+      expectedUpdatedUser
+    );
+
+    // Act
+    const response = await participantsController.patch(req, res);
+
+    // Assert
+    expect(ParticipantsRepository.prototype.modify).toHaveBeenCalledTimes(2);
+    expect(response).toMatchObject({
+      statusCode: 200,
+      message: 'Ok',
+      fields: [],
+      payload: expectedUpdatedUser,
+      errorMessage: null,
+    });
+  });
   // #endregion business logic
 });
