@@ -42,22 +42,44 @@ Restful API for forums management
 - Controllers
   - CRUD E2E operations
   - No mocked dependencies (except express js)
+- Services
+  - Nothing mocked
 
 ## Tech doubt
 
 ### BE Validator
 
-- Add support for Patch models
-- isOptional validator
-- isOneOf validator
-
-### TODOs
+- Implement full npm validator
+  - forums controller
+  - participants controller
+  - auth controller
 
 ## Incoming Features
 
 ### Notifications (TBD)
 
-- send notifications to users/forums
+- notification
+  - id
+  - type (U, F)
+  - code (User added in forum) Entity_Action_Detail (USER_ADDED_FORUM) // improve codes
+- forum notifications
+  - new participant added
+  - someone's role updated
+- user notifications
+  - invitation to be a forum participant
+  - rejected from a forum
+  - password changed
+
+### Comments endpoint
+
+- POST
+- PATCH
+  - edit content message
+  - like/dislike
+- DELETE
+  - soft delete ({ id, content, likes, dislikes, recipient, removed })
+- GET
+  - paginated comments
 
 ### Like/dislike forum comments/posts
 
