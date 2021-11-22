@@ -9,14 +9,9 @@ const ParticipantsRepository = require('../repositories/Participants.Repository'
 const CloudinaryService = require('../services/Cloudinary.Service');
 
 const Roles = require('../common/constants/roles');
-const Presets = require('../common/constants/cloudinaryFolders');
+const CloudinaryFolders = require('../common/constants/cloudinaryFolders');
 
-// validators
-const validations = require('../utilities/validations');
-const {
-  validate,
-  executeValidations,
-} = require('../common/processors/errorManager');
+const { validate, validateModel, validations } = require('js-validation-tool');
 const postForumValidator = require('../utilities/validators/post.forum.validator');
 
 // api/v0/forums
@@ -54,17 +49,22 @@ class ForumsController {
       };
 
       // Step validate query params
-      const { isValid, fields } = await executeValidations([
-        validations.isBool(filters.isActive, 'isActive'),
-        validations.isNumeric(filters.page, 'page'),
-        validations.isNumeric(filters.pageSize, 'pageSize'),
-        // TODO -> enable this validations when they are implemented
-        // validations.isOptional(filters.author, 'author'),
-        // validations.isEmpty(filters.author, 'author'),
-        // validations.isOptional(filters.topic, 'topic'),
-        // validations.isEmpty(filters.topic, 'topic'),
-        // validations.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
-        // validations.isOneOf(filters.sortOrder, ['asc', 'desc']),
+      const { isValid, fields } = await validate([
+        validations.boolean.isBool('isActive', filters.isActive),
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+        validations.common.isOptional('author', filters.author),
+        validations.string.isNotEmpty('author', filters.author),
+        validations.common.isOptional('topic', filters.topic),
+        validations.string.isNotEmpty('topic', filters.topic),
+        validations.common.isOneOf('sortBy', filters.sortBy, [
+          'lastActivity',
+          'topic',
+        ]),
+        validations.common.isOneOf('sortOrder', filters.sortOrder, [
+          'asc',
+          'desc',
+        ]),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -87,7 +87,10 @@ class ForumsController {
       const { topic, description, isPrivate, image } = req.body;
 
       // Step invoke model validator
-      const { isValid, fields } = await validate(req.body, postForumValidator);
+      const { isValid, fields } = await validateModel(
+        postForumValidator,
+        req.body
+      );
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
@@ -108,7 +111,7 @@ class ForumsController {
       if (image) {
         const uploadedImageId = await this.cloudinaryService.uploadImage(
           image,
-          Presets.forums
+          CloudinaryFolders.forums
         );
         if (!uploadedImageId) {
           apiResponse.unprocessableEntity(
