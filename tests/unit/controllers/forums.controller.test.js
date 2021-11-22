@@ -80,7 +80,7 @@ describe('Forums Controller POST', () => {
       topic: 'new name or topic',
       description: 'Changes on arch',
       isPrivate: false,
-      image: mockImage,
+      image: mockImage.url,
     };
     const req = getMockReq({
       body: {
@@ -132,9 +132,9 @@ describe('Forums Controller POST', () => {
     const expectedResponse = {
       statusCode: 400,
       fields: [
-        `Field 'topic' expected to be nonEmptyString. Got: ${forumData.topic}`,
-        `Field 'description' expected to be nonEmptyString. Got: ${forumData.description}`,
-        `Field 'isPrivate' expected to be Boolean. Got: ${forumData.isPrivate}`,
+        `Field 'topic', expected not to be empty. Got: ${forumData.topic}`,
+        `Field 'description', expected not to be empty. Got: ${forumData.description}`,
+        `Field 'isPrivate', expected to be Boolean. Got: ${forumData.isPrivate}`,
       ],
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
@@ -273,7 +273,7 @@ describe('Forums Controller GET by filters', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'page' expected to be Numeric. Got: ${page}`],
+      fields: [`Field 'page', expected to be Numeric. Got: ${page}`],
     });
   });
 
@@ -296,7 +296,7 @@ describe('Forums Controller GET by filters', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'pageSize' expected to be Numeric. Got: ${pageSize}`],
+      fields: [`Field 'pageSize', expected to be Numeric. Got: ${pageSize}`],
     });
   });
 
@@ -319,7 +319,7 @@ describe('Forums Controller GET by filters', () => {
       message: 'Bad_Request',
       errorMessage: 'Validation errors',
       payload: null,
-      fields: [`Field 'isActive' expected to be Boolean. Got: ${isActive}`],
+      fields: [`Field 'isActive', expected to be Boolean. Got: ${isActive}`],
     });
   });
 
