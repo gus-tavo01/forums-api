@@ -12,7 +12,7 @@ const Roles = require('../common/constants/roles');
 const CloudinaryFolders = require('../common/constants/cloudinaryFolders');
 
 const { validate, validateModel, validations } = require('js-validation-tool');
-const postForumValidator = require('../utilities/validators/post.forum.validator');
+const postForumValidator = require('../utilities/validators/forums/post.validator');
 
 // api/v0/forums
 class ForumsController {
