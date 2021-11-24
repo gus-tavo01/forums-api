@@ -17,8 +17,8 @@ const {
 
 const customValidations = validations;
 const jsValidator = require('js-validation-tool');
-const postParticipantValidator = require('../utilities/validators/post.participant.validator');
-const patchParticipantValidator = require('../utilities/validators/patch.participant.validator');
+const postParticipantValidator = require('../utilities/validators/participants/post.validator');
+const patchParticipantValidator = require('../utilities/validators/participants/patch.validator');
 
 const Roles = require('../common/constants/roles');
 
