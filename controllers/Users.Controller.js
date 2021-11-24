@@ -6,7 +6,7 @@ const UsersRepository = require('../repositories/Users.Repository');
 const ForumsRepository = require('../repositories/Forums.Repository');
 
 const { validate, validateModel, validations } = require('js-validation-tool');
-const patchUserValidator = require('../utilities/validators/patch.account.validator');
+const patchUserValidator = require('../utilities/validators/users/patch.validator');
 const customValidations = require('../utilities/validations');
 
 // api/v0/users
