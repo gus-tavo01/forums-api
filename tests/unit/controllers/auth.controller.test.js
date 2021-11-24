@@ -585,7 +585,7 @@ describe('Auth controller resetPassword', () => {
 
   test('When provided password is invalid, expect a 400 response', async () => {
     // Arrange
-    const password = [];
+    const password = null;
     const profileId = '610ee6890a25e341708f1703';
     const req = getMockReq({
       body: { password },
@@ -605,7 +605,8 @@ describe('Auth controller resetPassword', () => {
       statusCode: 400,
       message: 'Bad_Request',
       fields: [
-        `Field 'password' expected to be nonEmptyString. Got: ${password}`,
+        `Field 'password', expected not to be empty. Got: ${password}`,
+        `Field 'password', expected to have length {\"min\":3}. Got: ${password}`,
       ],
       payload: null,
       errorMessage: 'Validation errors',
@@ -633,8 +634,8 @@ describe('Auth controller resetPassword', () => {
       statusCode: 400,
       message: 'Bad_Request',
       fields: [
-        `Field 'userId' expected to be nonEmptyString. Got: ${userId}`,
-        `Field 'userId' expected to be GUID. Got: ${userId}`,
+        `Field 'userId', expected not to be empty. Got: ${userId}`,
+        `Field 'userId', expected to be a valid mongo id. Got: ${userId}`,
       ],
       payload: null,
       errorMessage: 'Validation errors',

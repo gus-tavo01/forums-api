@@ -10,11 +10,11 @@ const UsersRepository = require('../repositories/Users.Repository');
 const EmailService = require('../services/Email.Service');
 const CloudinaryService = require('../services/Cloudinary.Service');
 
-const validations = require('../utilities/validations');
-const {
-  validate,
-  executeValidations,
-} = require('../common/processors/errorManager');
+// local validation tool (deprecated)
+const { validate: oldValidate } = require('../common/processors/errorManager');
+
+const { validateModel, validations, validate } = require('js-validation-tool');
+const pwdResetValidator = require('../utilities/validators/auth/pwdReset.validator');
 const registerValidator = require('../utilities/validators/auth/register.validator');
 const loginValidator = require('../utilities/validators/auth/login.validator');
 
@@ -34,7 +34,7 @@ class AuthController {
 
     this.router.post('/login', this.login);
     this.router.post('/register', this.register);
-    this.router.post('/users/:userId/password', useJwtAuth, this.resetPassword);
+    this.router.put('/users/:userId/password', useJwtAuth, this.resetPassword);
   }
 
   login = async (req, res) => {
@@ -44,7 +44,7 @@ class AuthController {
       // TODO:
       // replace old local validator by js validation tool
       // Step validate entity
-      const { isValid, fields } = await validate(req.body, loginValidator);
+      const { isValid, fields } = await oldValidate(req.body, loginValidator);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
@@ -97,7 +97,10 @@ class AuthController {
       // TODO:
       // replace old local validator by js validation tool
       // Step validate input fields
-      const { isValid, fields } = await validate(req.body, registerValidator);
+      const { isValid, fields } = await oldValidate(
+        req.body,
+        registerValidator
+      );
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
@@ -189,16 +192,23 @@ class AuthController {
       const { userId } = req.params;
       const { password } = req.body;
 
-      // TODO:
-      // replace this process by model validator and validate apart
       // Step validate request data
-      const { isValid, fields } = await executeValidations([
-        validations.isEmpty(password, 'password'),
-        validations.isEmpty(userId, 'userId'),
-        validations.isMongoId(userId, 'userId'),
+      const [
+        { isValid: isModelValid, fields: modelFields },
+        { isValid: areParamsValid, fields: paramsFields },
+      ] = await Promise.all([
+        validateModel(pwdResetValidator, req.body),
+        validate([
+          validations.string.isNotEmpty('userId', userId),
+          validations.string.isMongoId('userId', userId),
+        ]),
       ]);
-      if (!isValid) {
-        apiResponse.badRequest('Validation errors', fields);
+
+      if (!isModelValid || !areParamsValid) {
+        apiResponse.badRequest('Validation errors', [
+          ...modelFields,
+          ...paramsFields,
+        ]);
         return res.response(apiResponse);
       }
 
