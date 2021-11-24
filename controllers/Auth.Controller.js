@@ -15,10 +15,10 @@ const {
   validate,
   executeValidations,
 } = require('../common/processors/errorManager');
-const postAccountValidator = require('../utilities/validators/post.account.validator');
-const loginValidator = require('../utilities/validators/login.validator');
+const registerValidator = require('../utilities/validators/auth/register.validator');
+const loginValidator = require('../utilities/validators/auth/login.validator');
 
-const UploadPresets = require('../common/constants/cloudinaryFolders');
+const CloudinaryFolders = require('../common/constants/cloudinaryFolders');
 
 // api/v0/auth
 class AuthController {
@@ -41,6 +41,8 @@ class AuthController {
     const { username, password } = req.body;
     const apiResponse = new ApiResponse();
     try {
+      // TODO:
+      // replace old local validator by js validation tool
       // Step validate entity
       const { isValid, fields } = await validate(req.body, loginValidator);
       if (!isValid) {
@@ -92,11 +94,10 @@ class AuthController {
     try {
       const { avatar, username, email, password, dateOfBirth } = req.body;
 
+      // TODO:
+      // replace old local validator by js validation tool
       // Step validate input fields
-      const { isValid, fields } = await validate(
-        req.body,
-        postAccountValidator
-      );
+      const { isValid, fields } = await validate(req.body, registerValidator);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
@@ -119,7 +120,7 @@ class AuthController {
       if (avatar) {
         const uploadedImageId = await this.cloudinaryService.uploadImage(
           avatar,
-          UploadPresets.avatars
+          CloudinaryFolders.avatars
         );
         if (!uploadedImageId) {
           apiResponse.unprocessableEntity('Error uploading the avatar image');
@@ -188,6 +189,8 @@ class AuthController {
       const { userId } = req.params;
       const { password } = req.body;
 
+      // TODO:
+      // replace this process by model validator and validate apart
       // Step validate request data
       const { isValid, fields } = await executeValidations([
         validations.isEmpty(password, 'password'),

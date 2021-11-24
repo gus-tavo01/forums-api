@@ -1,4 +1,4 @@
-const Validations = require('../../common/constants/validations');
+const Validations = require('../../../common/constants/validations');
 
 module.exports = () => ({
   username: [Validations.isEmpty()],

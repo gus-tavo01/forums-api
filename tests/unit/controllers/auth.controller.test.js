@@ -9,7 +9,7 @@ const UsersRepository = require('../../../repositories/Users.Repository');
 const EmailService = require('../../../services/Email.Service');
 const CloudinaryService = require('../../../services/Cloudinary.Service');
 
-const { imageUrl } = require('../../helpers/mockImageUrl');
+const mockImage = require('../../helpers/mockImageUrl');
 
 jest.mock('../../../repositories/Accounts.Repository');
 jest.mock('../../../repositories/Users.Repository');
@@ -213,7 +213,7 @@ describe('Auth controller register', () => {
     const username = 'paco.perez01';
     const req = getMockReq({
       body: {
-        avatar: imageUrl,
+        avatar: mockImage.url,
         username,
         email: 'pac.per@gmail.com',
         dateOfBirth: '2000-02-16',
