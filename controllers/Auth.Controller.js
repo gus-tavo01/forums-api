@@ -10,9 +10,6 @@ const UsersRepository = require('../repositories/Users.Repository');
 const EmailService = require('../services/Email.Service');
 const CloudinaryService = require('../services/Cloudinary.Service');
 
-// local validation tool (deprecated)
-const { validate: oldValidate } = require('../common/processors/errorManager');
-
 const { validateModel, validations, validate } = require('js-validation-tool');
 const pwdResetValidator = require('../utilities/validators/auth/pwdReset.validator');
 const registerValidator = require('../utilities/validators/auth/register.validator');
@@ -92,12 +89,10 @@ class AuthController {
     try {
       const { avatar, username, email, password, dateOfBirth } = req.body;
 
-      // TODO:
-      // replace old local validator by js validation tool
       // Step validate input fields
-      const { isValid, fields } = await oldValidate(
-        req.body,
-        registerValidator
+      const { isValid, fields } = await validateModel(
+        registerValidator,
+        req.body
       );
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);

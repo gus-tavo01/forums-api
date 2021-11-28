@@ -330,9 +330,7 @@ describe('Auth controller register', () => {
       statusCode: 400,
       payload: null,
       message: 'Bad_Request',
-      fields: [
-        `Field 'username' expected to be nonEmptyString. Got: ${username}`,
-      ],
+      fields: [`Field 'username', expected not to be empty. Got: ${username}`],
       errorMessage: 'Validation errors',
     });
   });
@@ -357,14 +355,14 @@ describe('Auth controller register', () => {
       statusCode: 400,
       payload: null,
       message: 'Bad_Request',
-      fields: [`Field 'email' expected to be email. Got: ${email}`],
+      fields: [`Field 'email', expected to be a valid email. Got: ${email}`],
       errorMessage: 'Validation errors',
     });
   });
 
   test('When password is invalid, expect a 400 response with validation errors', async () => {
     // Arrange
-    const password = {};
+    const password = '{}';
     const req = getMockReq({
       body: {
         username: 'GG',
@@ -378,13 +376,11 @@ describe('Auth controller register', () => {
     const response = await authController.register(req, res);
 
     // Assert
+    expect(response.fields.length).toBeTruthy();
     expect(response).toMatchObject({
       statusCode: 400,
       payload: null,
       message: 'Bad_Request',
-      fields: [
-        `Field 'password' expected to be nonEmptyString. Got: ${password}`,
-      ],
       errorMessage: 'Validation errors',
     });
   });
@@ -409,7 +405,9 @@ describe('Auth controller register', () => {
       statusCode: 400,
       payload: null,
       message: 'Bad_Request',
-      fields: [`Field 'dateOfBirth' expected to be Date. Got: ${dateOfBirth}`],
+      fields: [
+        `Field 'dateOfBirth', expected to be a valid date. Got: ${dateOfBirth}`,
+      ],
       errorMessage: 'Validation errors',
     });
   });
