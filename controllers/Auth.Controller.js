@@ -41,10 +41,8 @@ class AuthController {
     const { username, password } = req.body;
     const apiResponse = new ApiResponse();
     try {
-      // TODO:
-      // replace old local validator by js validation tool
       // Step validate entity
-      const { isValid, fields } = await oldValidate(req.body, loginValidator);
+      const { isValid, fields } = await validateModel(loginValidator, req.body);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);

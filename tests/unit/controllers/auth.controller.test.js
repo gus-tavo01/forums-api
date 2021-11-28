@@ -79,9 +79,7 @@ describe('Auth controller login', () => {
       statusCode: 400,
       payload: null,
       errorMessage: 'Validation errors',
-      fields: [
-        `Field 'username' expected to be nonEmptyString. Got: ${username}`,
-      ],
+      fields: [`Field 'username', expected not to be empty. Got: ${username}`],
     });
   });
 
@@ -105,9 +103,7 @@ describe('Auth controller login', () => {
       statusCode: 400,
       payload: null,
       errorMessage: 'Validation errors',
-      fields: [
-        `Field 'password' expected to be nonEmptyString. Got: ${password}`,
-      ],
+      fields: [`Field 'password', expected not to be empty. Got: ${password}`],
     });
   });
 
