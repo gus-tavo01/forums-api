@@ -7,7 +7,6 @@ const ForumsRepository = require('../repositories/Forums.Repository');
 
 const { validate, validateModel, validations } = require('js-validation-tool');
 const patchUserValidator = require('../utilities/validators/users/patch.validator');
-const customValidations = require('../utilities/validations');
 
 // api/v0/users
 class UsersController {
@@ -38,8 +37,8 @@ class UsersController {
         validations.number.isNumeric('pageSize', filters.pageSize),
         validations.common.isOptional('username', filters.username),
         validations.string.isNotEmpty('username', filters.username),
-        validations.common.isOptional('email', filters.email),
-        customValidations.string.isEmail('email', filters.email),
+        validations.common.isOptional('email'),
+        validations.string.isEmail('email', filters.email),
         // validations.common.isOptional('isActive', filters.isActive),
         // validations.string.isString('isActive', filters.isActive),
       ]);
@@ -64,7 +63,7 @@ class UsersController {
 
       // Step validate params
       const { isValid, fields } = await validate([
-        customValidations.string.isMongoId('id', id),
+        validations.string.isMongoId('id', id),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -156,7 +155,7 @@ class UsersController {
 
       // Step validations
       const [paramsValidation, modelValidation] = await Promise.all([
-        validate([customValidations.string.isMongoId('userId', userId)]),
+        validate([validations.string.isMongoId('userId', userId)]),
         validateModel(patchUserValidator, body),
       ]);
       if (!paramsValidation.isValid || !modelValidation.isValid) {
