@@ -15,7 +15,6 @@ const {
 } = require('../common/processors/errorManager');
 // end deprecations
 
-const customValidations = validations;
 const jsValidator = require('js-validation-tool');
 const postParticipantValidator = require('../utilities/validators/participants/post.validator');
 const patchParticipantValidator = require('../utilities/validators/participants/patch.validator');
@@ -406,8 +405,11 @@ class ParticipantsController {
       // Step validate request data
       const [paramsValidation, modelValidation] = await Promise.all([
         jsValidator.validate([
-          customValidations.string.isMongoId('forumId', forumId),
-          customValidations.string.isMongoId('participantId', participantId),
+          jsValidator.validations.string.isMongoId('forumId', forumId),
+          jsValidator.validations.string.isMongoId(
+            'participantId',
+            participantId
+          ),
         ]),
         jsValidator.validateModel(patchParticipantValidator, body),
       ]);
@@ -421,8 +423,12 @@ class ParticipantsController {
 
       // Step verify role is valid
       const roleValidation = await jsValidator.validate([
-        jsValidator.validations.common.isOptional('role', body.role),
-        customValidations.common.isOneOf('role', body.role, Object.keys(Roles)),
+        jsValidator.validations.common.isOptional('role'),
+        jsValidator.validations.common.isOneOf(
+          'role',
+          body.role,
+          Object.keys(Roles)
+        ),
       ]);
       if (!roleValidation.isValid) {
         apiResponse.unprocessableEntity('Invalid role', roleValidation.fields);
