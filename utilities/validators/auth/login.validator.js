@@ -1,6 +1,6 @@
-const Validations = require('js-validation-tool/core/validations');
+const Validations = require('js-validation-tool/core/modelValidations');
 
-module.exports = (e) => ({
-  username: [Validations.string.isNotEmpty('username', e.username)],
-  password: [Validations.string.isNotEmpty('password', e.password)],
+module.exports = () => ({
+  username: [Validations.string.isNotEmpty()],
+  password: [Validations.string.isNotEmpty()],
 });

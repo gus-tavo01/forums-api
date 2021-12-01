@@ -1,8 +1,8 @@
-const Validations = require('js-validation-tool/core/validations');
+const Validations = require('js-validation-tool/core/modelValidations');
 
-module.exports = (entity) => ({
+module.exports = () => ({
   password: [
-    Validations.string.isNotEmpty('password', entity.password),
-    Validations.string.isLength('password', entity.password, { min: 3 }),
+    Validations.string.isNotEmpty(),
+    Validations.string.isLength({ min: 3 }),
   ],
 });
