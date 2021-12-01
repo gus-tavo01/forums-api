@@ -1,8 +1,5 @@
-const Validations = require('js-validation-tool/core/validations');
+const Validations = require('js-validation-tool/core/modelValidations');
 
-module.exports = (e) => ({
-  role: [
-    Validations.common.isOptional('role', e.role),
-    Validations.string.isNotEmpty('role', e.role),
-  ],
+module.exports = () => ({
+  role: [Validations.common.isOptional(), Validations.string.isNotEmpty()],
 });

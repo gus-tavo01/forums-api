@@ -1,16 +1,10 @@
-const Validations = require('js-validation-tool/core/validations');
+const Validations = require('js-validation-tool/core/modelValidations');
 
-module.exports = (e) => ({
+module.exports = () => ({
   selfDescription: [
-    Validations.common.isOptional('selfDescription', e.selfDescription),
-    Validations.string.isString('selfDescription', e.selfDescription),
+    Validations.common.isOptional(),
+    Validations.string.isString(),
   ],
-  language: [
-    Validations.common.isOptional('language', e.language),
-    Validations.string.isNotEmpty('language', e.language),
-  ],
-  appTheme: [
-    Validations.common.isOptional('appTheme', e.appTheme),
-    Validations.string.isNotEmpty('appTheme', e.appTheme),
-  ],
+  language: [Validations.common.isOptional(), Validations.string.isNotEmpty()],
+  appTheme: [Validations.common.isOptional(), Validations.string.isNotEmpty()],
 });

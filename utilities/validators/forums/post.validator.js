@@ -1,14 +1,12 @@
-const Validations = require('js-validation-tool/core/validations');
+const Validations = require('js-validation-tool/core/modelValidations');
 
-module.exports = (entity) => ({
+module.exports = () => ({
   image: [
-    Validations.common.isOptional('image', entity.image),
-    Validations.string.isString('image', entity.image),
-    Validations.string.isNotEmpty('image', entity.image),
+    Validations.common.isOptional(),
+    Validations.string.isString(),
+    Validations.string.isNotEmpty(),
   ],
-  topic: [Validations.string.isNotEmpty('topic', entity.topic)],
-  description: [
-    Validations.string.isNotEmpty('description', entity.description),
-  ],
-  isPrivate: [Validations.boolean.isBool('isPrivate', entity.isPrivate)],
+  topic: [Validations.string.isNotEmpty()],
+  description: [Validations.string.isNotEmpty()],
+  isPrivate: [Validations.boolean.isBool()],
 });
