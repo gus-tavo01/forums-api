@@ -6,17 +6,20 @@ const ForumsRepository = require('../repositories/Forums.Repository');
 const ParticipantsRepository = require('../repositories/Participants.Repository');
 const UsersRepository = require('../repositories/Users.Repository');
 
+const { validate, validations } = require('js-validation-tool');
+
 const useJwtAuth = require('../middlewares/useJwtAuth');
 
 const Roles = require('../common/constants/roles');
 
 class CommentsController {
+  #forumsRepo = new ForumsRepository();
+  #commentsRepo = new CommentsRepository();
+  #participantsRepo = new ParticipantsRepository();
+  #usersRepo = new UsersRepository();
+
   constructor() {
     this.router = Router({ mergeParams: true });
-    this.forumsRepo = new ForumsRepository();
-    this.commentsRepo = new CommentsRepository();
-    this.participantsRepo = new ParticipantsRepository();
-    this.usersRepo = new UsersRepository();
 
     this.router.get('/', this.get);
     this.router.post('/', useJwtAuth, this.post);
@@ -37,8 +40,23 @@ class CommentsController {
         forumId,
       };
 
+      const { isValid, fields } = await validate([
+        validations.string.isMongoId('forumId', forumId),
+        validations.common.isOptional('from'),
+        validations.string.isNotEmpty('from', filters.from),
+        validations.common.isOptional('to'),
+        validations.string.isNotEmpty('to', filters.to),
+        validations.number.isNumeric('page', filters.page),
+        validations.number.isNumeric('pageSize', filters.pageSize),
+      ]);
+
+      if (!isValid) {
+        apiResponse.badRequest('Validation errors', fields);
+        return res.response(apiResponse);
+      }
+
       // Step Get forum and verify is public
-      const forum = await this.forumsRepo.findById(forumId);
+      const forum = await this.#forumsRepo.findById(forumId);
       if (!forum) {
         apiResponse.badRequest('Invalid forum, not found');
         return res.response(apiResponse);
@@ -50,7 +68,7 @@ class CommentsController {
       }
 
       // Step get forum comments
-      const comments = await this.commentsRepo.find(filters);
+      const comments = await this.#commentsRepo.find(filters);
       apiResponse.ok(comments);
     } catch (error) {
       apiResponse.internalServerError(error);
@@ -76,9 +94,11 @@ class CommentsController {
       }
 
       // Step verify requester is a forum participant
-      const { id: userId } = await this.usersRepo.findByUsername(user.username);
+      const { id: userId } = await this.#usersRepo.findByUsername(
+        user.username
+      );
 
-      const forumParticipant = await this.participantsRepo.findByUserAndForum(
+      const forumParticipant = await this.#participantsRepo.findByUserAndForum(
         userId,
         forumId
       );
@@ -96,7 +116,7 @@ class CommentsController {
       }
 
       // Step create comment
-      const createdComment = await this.commentsRepo.add({
+      const createdComment = await this.#commentsRepo.add({
         message: body.message,
         forumId: forum.id,
         from: user.username,
