@@ -143,10 +143,6 @@ class UsersController {
     return res.response(apiResponse);
   };
 
-  // getPrivateComments = async (req, res) => {}
-
-  // delete
-
   patch = async (req, res) => {
     const apiResponse = new ApiResponse();
     try {

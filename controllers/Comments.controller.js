@@ -49,7 +49,6 @@ class CommentsController {
         validations.number.isNumeric('page', filters.page),
         validations.number.isNumeric('pageSize', filters.pageSize),
       ]);
-
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
         return res.response(apiResponse);
@@ -145,6 +144,8 @@ class CommentsController {
     }
     return res.response(apiResponse);
   };
+
+  // delete
 }
 
 module.exports = CommentsController;
