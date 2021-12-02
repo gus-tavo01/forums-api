@@ -39,8 +39,6 @@ class UsersController {
         validations.string.isNotEmpty('username', filters.username),
         validations.common.isOptional('email'),
         validations.string.isEmail('email', filters.email),
-        // validations.common.isOptional('isActive', filters.isActive),
-        // validations.string.isString('isActive', filters.isActive),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);
@@ -112,8 +110,20 @@ class UsersController {
         validations.string.isNotEmpty('author', filters.author),
         validations.common.isOptional('topic', filters.topic),
         validations.string.isNotEmpty('topic', filters.topic),
-        // validations.common.isOneOf(filters.sortBy, ['lastActivity', 'topic']),
-        // validations.common.isOneOf(filters.sortOrder, ['asc', 'desc']),
+        validations.common.isOneOf('sortBy', filters.sortBy, [
+          'lastActivity',
+          'topic',
+          'author',
+          'createDate',
+          'updateDate',
+          'participants',
+          'comments',
+          'isActive',
+        ]),
+        validations.common.isOneOf('sortOrder', filters.sortOrder, [
+          'asc',
+          'desc',
+        ]),
       ]);
       if (!isValid) {
         apiResponse.badRequest('Validation errors', fields);

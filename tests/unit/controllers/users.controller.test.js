@@ -205,7 +205,7 @@ describe('Users Controller GetForums', () => {
       ForumsRepository.prototype.find.mockReset();
   });
 
-  test('When filters are provided, expect response to be successful', async () => {
+  test('When valid filters are provided, expect response to be successful', async () => {
     // Arrange
     const targetUser = 'Ice-Cream01';
     const req = getMockReq({
@@ -399,9 +399,68 @@ describe('Users Controller GetForums', () => {
     });
   });
 
-  // TODO
-  // test('When sortBy param is invalid, expect a validation error on response');
-  // test('When sortOrder param is invalid, expect a validation error on response');
+  test('When sortBy param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const sortBy = 'muny';
+    const req = getMockReq({
+      query: { sortBy },
+      user: { username: 'ticky-ti' },
+    });
+
+    const expectedValues = [
+      'lastActivity',
+      'topic',
+      'author',
+      'createDate',
+      'updateDate',
+      'participants',
+      'comments',
+      'isActive',
+    ];
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [
+        `Field 'sortBy', expected to be in ${JSON.stringify(
+          expectedValues
+        )}. Got: ${sortBy}`,
+      ],
+    });
+  });
+
+  test('When sortOrder param is invalid, expect a validation error on response', async () => {
+    // Arrange
+    const sortOrder = 'normal';
+    const req = getMockReq({
+      query: { sortOrder },
+      user: { username: 'yayis-kun' },
+    });
+
+    const expectedValues = ['asc', 'desc'];
+
+    // Act
+    const response = await usersController.getUserForums(req, res);
+
+    // Assert
+    expect(response).toMatchObject({
+      statusCode: 400,
+      message: 'Bad_Request',
+      errorMessage: 'Validation errors',
+      payload: null,
+      fields: [
+        `Field 'sortOrder', expected to be in ${JSON.stringify(
+          expectedValues
+        )}. Got: ${sortOrder}`,
+      ],
+    });
+  });
 });
 
 describe('Users Controller PATCH', () => {
